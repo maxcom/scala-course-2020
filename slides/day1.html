@@ -1,0 +1,712 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Базовые типы Scala и pattern matching</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/moon.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2>Часть 1. Базовые типы Scala и pattern matching</h2>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2018/</small></a>
+				</section>
+
+				<section>
+					<h3>План</h2>
+					<ol>
+						<li>Материалы курса, обратная связь
+						<li>Обзор курса
+						<li>Средства разработки и первые шаги
+						<li>Case-классы
+						<li>Алгебраические типы. 
+						<li>Pattern matching
+					</ol>
+				</section>
+				<section>
+					<h3>Материалы курса и обратная связь</h3>
+					<p>Слайды, примеры программ и другие файлы доступны в репозитарии 
+					<a href="https://github.com/maxcom/scala-course">https://github.com/maxcom/scala-course</a>.
+					Содержимое будет пополняться по ходу курса.
+					</p>
+					<p>Для обсуждений и вопросов по курсу используем telegram чат 
+					<a target="_blank" href="https://t.me/joinchat/EWDmyw3hkqatbDQ_BZAl4w">@scalacourse2018</a> (доступ по ссылке).</p>
+				</section>
+
+				<section>
+					<p>Курс читает Максим Валянский
+					<p>окончил ВМиК в 2001 году
+					<p>занимаюсь разработкой ПО сколько себя помню 
+					<p>работаю архитектором в компании Solar Security
+				</section>
+
+				<section>
+					Кто мы такие и почему Scala?
+				</section>
+
+				<section>
+					<p>Мы разрабочики из компании Solar Security.
+					<p>Компания занимается:
+					<ul>
+						<li>Разработка продуктов, решающих задачи ИБ в компаниях.
+						<li>Аутсорсинг ИБ
+					</ul>
+				</section>
+
+				<section>
+					<p>Мы занимаемся "Дозором" – инструментом контроля коммуникаций сотрудников, выявления ранних признаков корпоративного мошенничества и проведения расследований.<br><br>
+					<a target="_blank" href="https://solarsecurity.ru/products/solar_dozor/">https://solarsecurity.ru/products/solar_dozor/</a>
+				</section>
+
+				<section>
+					<p>Продукту более 18 лет.
+					<p class="fragment">Первые версии написаны на Scheme – 
+					функциональном динамическом языке, диалекте Lisp.
+				</section>
+
+				<section>
+					<p>В ходе эволюции у нас появилось много компонентов на Java.
+					<p class="fragment">Java это отличный runtime, opensource community,
+					библиотеки для интеграции со сторонним ПО.
+				</section>
+
+				<section>
+					<p>Но сейчас мы отказались и от Scheme,<br> и от языка Java в "Дозоре".
+					<p><small>(хотя у нас еще много Java кода)</small></p>
+				</section>
+
+				<section>
+					<p>Scheme (mzscheme, racket) сейчас это:
+					<ul>
+						<li class="fragment">Плохой runtime – медленный, много ошибок, проблемы с многопоточностью
+						<li class="fragment">Мало готовых библиотек, плохое качество
+
+						<li class="fragment">Плохие средства отладки и диагностики
+
+						<li class="fragment">Сложности с поиском программистов
+					</ul>
+				</section>
+
+				<section>
+					<p>Но мы все еще любим функциональное программирование<sup>*</sup>
+					<p class="fragment"><small>* хотя каждый разработчик по своему понимает что такое ФП</small>
+				</section>
+
+				<section>
+					<img src="java.jpg">
+				</section>
+
+				<section>
+					<p>Мы верим что функциональной программирование сделает наш софт
+					качественнее, а разработку – более быстрой и предсказуемой.
+				</section>
+
+				<section>
+					<p>Что не так в Java?
+					<ul>
+						<li class="fragment">Изменяемое состояние и побочные эффекты везде
+						<li class="fragment">Простые вещи делаются сложно - много избыточного кода
+						<li class="fragment">Сложные вещи делаются еще сложнее - вспомним Spring Framework и J2EE
+						<li class="fragment">Не достаточно строгая система типов
+						<li class="fragment">...
+					</ul>
+				</section>
+
+				<section>
+					<p>Мы выбрали JVM как платформу и остановились на двух 
+					языках – Scala и Clojure.
+				</section>
+
+				<section>
+					<p>Первый Scala компонент у нас
+					появился осенью 2013 года в качестве эксперимента. 
+					<p class="fragment">Это была распределенная система хранения бинарных данных - "файловое хранилище".
+					<p class="fragment">По результатам вывода в production эксперимент посчитали удачным.
+					<p class="fragment">Сейчас довольно большая часть продукта написана на Scala,
+					и у нас много планов по развитию.
+				</section>
+
+				<section>
+					<p><strong>Scala</strong> — мультипарадигмальный язык программирования, спроектированный кратким и типобезопасным для простого и быстрого создания компонентного программного обеспечения, сочетающий возможности функционального и объектно-ориентированного программирования.</p>
+					<img src="Wikipedia-logo-v2.svg">
+					<p class="fragment">Работающий на JVM и хорошо интегрирующийся с существующим Java кодом</p>
+				</section>
+
+				<section>
+					<p>обо всём языке говорить долго</p>
+					<img src="korabli1.jpg">
+				</section>
+
+				<section>
+					<p>хотя есть что рассказать</p>
+					<img src="korabli2.jpg">
+				</section>
+
+				<section>
+					<p>рассмотрим базовые возможности языка<br>
+					и перейдем к практике
+				</section>
+
+				<section>
+					<h3>Состав курса</h3>
+					<ol>
+						<li>Введение в программирование на Scala
+						<li>Потоки и асинхронное программирование.
+						<li>Разработка и использование веб-сервисов
+					</ol>
+					<p>После каждого занятия будут предложены задачки по теме и одно
+					большое практическое задание на весь курс.</p>
+				</section>
+
+
+				<section>
+					<h2>Средства разработки</h2>
+
+					Есть много вариантов, мы будем использовать<br>
+					Intellij IDEA Community Edition + Scala plugin
+					
+					<p><a target="_blank" href="https://www.jetbrains.com/idea/download/">https://www.jetbrains.com/idea/download/</a>
+				</section>
+
+				<section>
+					<ol>
+						<li>Ставим IDEA, запускаем
+						<li>Добавляем Scala plugin (configure -&gt; plugins)
+						<li>Создаем новый проект Scala
+							<li>Выбираем sbt; версии самые новые <br>(Scala 2.12.4; sbt 1.1.0)
+					</ol>
+				</section>
+
+				<section>
+					<h2>Hello, World!</h2>
+
+					<pre><code class="scala">
+object HelloWorld {
+  def main(args: Array[String]): Unit = {
+    println("Hello, world!")
+  }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					Структура проекта (sbt):
+					<pre><code>
+build.sbt       -- настройки сборки
+project         -- еще настройки сборки
+project/target  -- кеш компилятора и вспомогательные файлы
+src             -- исходные файлы и ресурсы
+src/main        -- основной код
+src/main/scala  -- основной код на Scala
+src/test        -- исходные файлы и ресурсы тестов
+src/test/scala  -- код тестов на Scala
+target          -- результат компиляции
+					</code></pre>
+				</section>
+
+				<section>
+					Интерактивная разработка: Scala Worksheet
+
+					<img src="worksheet.png">
+				</section>
+
+				<section>
+					<h3>Переменные и функции</h3>
+
+					<p>можно присвоить имя результату выражения:
+					<pre><code class="scala">val something = 10 // константа</code></pre>
+					<pre><code class="scala">var something: Int = 10 // переменная</code></pre>
+					<p>тип выводится автоматически
+				</section>
+
+				<section>
+					<p>В Scala почти всё является выражением:
+					<pre><code class="scala">
+val ageGroup = if (age &gt;= 18) "grownup" else "minor"
+					</code></pre>
+					<pre><code class="scala">
+val result: Int = {
+  val one = 1
+  val two = 2
+  
+  one + two // "возвращается" последнее значение в блоке
+}
+					</code></pre>
+				</section>
+
+				<section>
+					объявление функции:
+					<pre><code class="scala">def square(x: Int) = x * x</code></pre>
+					функция - это значение:
+					<pre><code class="scala">val f: (Int ⇒ Int) = square</code></pre>
+					(её тип - Function1[Int, Int])
+				</section>
+
+				<section>
+					<h2>Пара (tuple)</h2>
+
+					Комбинация из двух значений:
+					<pre><code class="scala">
+val pair: (Int, Int) = (1, 2)
+// Tuple2[Int, Int]
+					</code></pre>
+					<p>деконструкция</p>
+					<pre><code class="scala">
+val (first, second) = pair
+					</code></pre>
+					<p>бывают еще "тройки" и более - до 22
+				</section>
+
+				<section>
+					<h3>Немного о коллекциях</h3>
+
+					Подробно устройство коллекций рассмотрим на втором занятии.
+				</section>
+
+				<section>
+					<p>Seq[T] – общий тип для коллекций, имеющих определенный порядок
+					   (списки, массивы, вектора и т.п.)
+					<p>ArrayBuffer[T] – аналог ArrayList из Java
+					<p>Vector[T] – неизменяемый аналог ArrayList
+				</section>
+
+				<section>
+					<pre><code class="scala">
+val buffer = ArrayBuffer[Int](1, 2, 3)
+
+buffer += 4 // добавление элемента
+
+buffer(1) // получение элемента
+
+// buffer еще и функция
+val f: (Int ⇒ Int) = buffer
+					</code></pre>
+				</section>
+
+				<section>
+					<p>У стандартных коллекций много полезных функций
+					<p>Справка на Vector: <a target="_blank" href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/Vector.html">scaladoc</a>.
+				</section>
+
+				<section>
+					Пример: разделение Vector на две части
+					<pre><code class="scala">
+val v = Vector(1, 2, 3, 4)
+
+val (first, second) = v.splitAt(v.length / 2)
+
+// first == Vector(1,2)
+// second == Vector(3,4)
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Case-классы</h2>
+					<p>Механизм для создания собственных типов для данных.
+					<pre><code class="scala">
+case class Address(`type`: String, value: String) {
+  def toStringAddress = s"${`type`}:$value"
+}
+					</code></pre>
+					<p>Это не ООП! Данные не изменяемые, обычно не содержат бизнес-логики.
+				</section>
+
+				<section>
+					<p>Собственный тип лучше, чем просто значения:
+
+					<pre><code class="scala">Address(`type`, value)</code></pre> 
+				
+					<p>против пары
+
+					<pre><code class="scala">(String, String)</code></pre> 
+				</section>
+
+				<section>
+					<p>Собственный тип можно заводить и для простых значений,
+					   например:
+
+					<pre><code class="scala">case class UserId(uuid: UUID)</code></pre> 
+					<pre><code class="scala">case class GroupId(uuid: UUID)</code></pre> 
+
+					<p>типы позволяют не путать значения между собой
+				</section>
+
+				<section>
+					<p>Что есть в case class?
+					<ul>
+						<li>геттеры для полей</li>
+						<li class="fragment">toString</li>
+						<li class="fragment">equals и hashcode</li>
+						<li class="fragment">создание без "new"</li>
+						<li class="fragment">экстрактор</li>
+						<li class="fragment">сериализация, product и еще...
+				</section>
+
+				<section>
+					<h2>Экстракторы</h2>
+					<p>Можно разобрать класс обратно:</p>
+					<pre><code class="scala">
+val address = Address("email", "abuse@sportloto.ru")
+
+val Address(_, email) = address
+					</pre></code>
+				</section>
+
+				<section>
+					Статическая фабрика и экстрактор:
+					<pre><code class="scala">
+object Address {
+  def apply(`type`: String, value: String) = 
+    new Address(`type`, value)
+  
+  def unapply(address: Address): Option[(String, String)] =
+    Some((address.`type`, address.value))
+}
+					</code></pre>
+					<small>* объект-компаньон, заменяет static декларации Java</small>
+					<small>* для case классов apply/unapply создаются автоматически</small>
+				</section>
+
+				<section>
+					<h2>Алгебраические типы</h2>
+					<p>Case классы можно объединить в иерархию</p>
+					<pre><code class="scala">
+sealed trait Expr
+
+case class Number(value: Int) extends Expr
+case class Plus(lhs: Expr, rhs: Expr) extends Expr
+case class Minus(lhs: Expr, rhs: Expr) extends Expr
+					</code></pre>
+					<small>* дальше будет более правильная версия этого примера</small>
+				</section>
+
+				<section>
+					<h2>Pattern matching</h2>
+					<pre><code class="scala">def value(expression: Expr): Int = expression match {
+  case Number(value)   ⇒ value
+  case Plus(lhs, rhs)  ⇒ value(lhs) + value(rhs)
+  case Minus(lhs, rhs) ⇒ value(lhs) - value(rhs)
+}				
+
+val result = value(Plus(Number(2), Number(2)))
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Pattern matching - альтернатива полиморфизму на методах:
+					<pre><code class="scala">trait Expr {
+  def eval: Int
+}
+case class Number(value: Int) extends Expr {
+  override val eval = value
+}
+case class Plus(lhs: Expr, rhs: Expr) extends Expr {
+  override def eval = lhs.eval + rhs.eval
+}
+case class Minus(lhs: Expr, rhs: Expr) extends Expr {
+  override def eval = lhs.eval - rhs.eval
+}
+Plus(Number(2), Number(2)).eval</code></pre>
+				</section>
+
+				<section>
+					<p>Две модели:
+					<ol>
+						<li>Фиксированная "схема" данных, произвольные операции – PM
+						<li>Фиксированные операции, большое разнообразие объектов – ООП
+
+				</section>
+
+				<section>
+					<h3>Более правильная версия примера</h3>
+					<pre><code class="scala">
+sealed trait Expr extends Product with Serializable
+
+final case class Number(value: Int) extends Expr
+final case class Plus(lhs: Expr, rhs: Expr) extends Expr
+final case class Minus(lhs: Expr, rhs: Expr) extends Expr
+					</code></pre>
+				</section>
+
+				<section>
+					почему "extend Product with Serializeable"?
+					<pre><code class="scala">
+val number: Expr = Number(3)
+val expr = Plus(Number(2), Number(2))
+val buffer = ArrayBuffer(Number(1), expr)
+
+// не компилируется
+buffer += number
+					</code></pre>
+					<p class="fragment">потому что тип buffer вот такой:
+					<pre class="fragment"><code class="scala">
+ArrayBuffer[Product with Serializable with Expr]
+					</code></pre>
+				</section>
+
+				<section>
+					почему "final case class"?
+					<p>запрещаем наследование
+					<p>помогаем компилятору
+				</section>
+
+				<section>
+					<h3>Option[T]</h3>
+					Тип с двумя вариантами:
+					<ul>
+						<li>Some[T] - контейнер для одного значения
+						<li>None - значение отсутствует
+					</ul>
+					<p>более безопасная замена null
+				</section>
+
+				<section>
+					<pre><code class="scala">
+val v = Vector(1, 2, 3, 4, 5)
+
+val r: Option[Int] = v.find(x ⇒ x > 2)
+
+// r = Some(3)				
+					</code></pre>
+
+					<p class="fragment">плохой вариант работы с Option:
+					<pre class="fragment"><code class="scala">
+if (r.isDefined) {
+  println(r.get) // бросает исключение если значения нет
+}					
+					</code></pre>
+				</section>
+
+				<section>
+					несколько правильных вариантов:
+					<pre><code class="scala">
+// 1
+r match {
+  case Some(k) ⇒ println(k)
+  case None    ⇒ println("None")  
+}
+
+// 
+// 2
+println(r.getOrElse("None"))
+					</code></pre>
+					еще варианты рассмотрим на 3-м занятии
+				</section>
+
+				<section>
+					<h3>Try[T]</h3>
+					Обработка исключений в Scala похожа на Java:
+					<pre><code class="scala">
+try {
+  1 / 0
+} catch {
+  case ex: ArithmeticException ⇒
+    println(ex.getMessage)
+}
+					</code></pre>
+					<p><small>try - тоже выражение, возвращает последнее значение</small>
+				</section>
+
+				<section>
+					Иногда мы не хотим обрабатывать ошибки прямо сейчас:
+					<ul>
+						<li>хотим положить в список и потом обработать
+						<li>передать между потоками
+						<li>...
+					</ul>
+				</section>
+
+				<section>
+					<p>Тип Try
+					<ul>
+						<li>Success - содержит значение
+						<li>Failure - содержит исключение
+					</ul>
+
+					<p>получим его так:
+
+					<pre><code class="scala">val result: Try[Int] = Try {
+  1 / 0
+}					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+import scala.util.{Random, Try}
+
+// fill - функция с двумя блоками параметров
+// fill[A](n: Int)(elem: =&gt; A)
+val vector = Vector.fill(10) {
+  Try {
+    1 / Random.nextInt(5)
+  }
+}
+
+vector.count(x ⇒ x.isSuccess)				
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Могут ли функции возвращать Try?
+
+					<p class="fragment">Да, но это "антипаттерн".
+				</section>
+
+				<section>
+					<h3>Either[A, B]</h3>
+					Выбор из двух значений:
+					<ul>
+						<li>Right(x) - "правильное" значение
+						<li>Left(y) - "левое" значение
+					</ul>
+				</section>
+				
+				<section>
+					<h2>Домашнее задание</h2>
+
+					Реализуем сортировку слиянием (merge sort)<br> для Vector[Int]
+
+					<p>Описание алгоритма: <a target="_blank" href="https://ru.wikipedia.org/wiki/%D0%A1%D0%BE%D1%80%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%BA%D0%B0_%D1%81%D0%BB%D0%B8%D1%8F%D0%BD%D0%B8%D0%B5%D0%BC">на wikipedia</a> 
+					<p>Неплохая <a target="_blank" href="https://www.cs.usfca.edu/~galles/visualization/ComparisonSort.html">визуализация</a><br> (надо выбрать "merge sort")
+				</section>
+
+				<section>
+					<p>Deadline - утро среды следующей недели.
+					<p class="fragment">Простой вариант - <a href="mailto:m.valyanskiy@solarsecurity.ru">m.valyanskiy@solarsecurity.ru</a>.
+					<p class="fragment">Присылайте только исходники; код должен работать!
+				</section>
+
+				<section>
+					<p>"Сложный" вариант - используем gitlab.com:
+					<ul>
+						<li>Зарегистрируйтесь на gitlab.com (это бесплатно)
+						<li>Заводите приватный репозиторий (свой под каждое задание)
+						<li>Добавляйте мне доступ - @maximvalyanskiy
+						<li>Киньте ссылку на gitlab мне на почту
+					</ul>
+				</section>
+
+				<section>
+					<h2>Unit-тесты<sup>*</sub></h2>
+					<p><small>дополнительная часть, если успеем</small>
+				</section>
+
+				<section>
+					<p>Напишем несколько тестов для функции сортировки.
+
+					<p class="fragment">Используем фреймворк Specs2
+				</section>
+
+				<section>
+					<p>Зачем нужны тесты?
+					<p class="fragment">Убедиться, что функция работает.
+					<p class="fragment">"Подстраховать" будущие изменения.
+				</section>
+
+				<section>
+					<p>Тесты кладут в специальную папку "test".
+					<p class="fragment">Они не попадают в production код.
+					<p class="fragment">Unit-тесты запускаются в сборочном окружении.
+				</section>
+
+				<section>
+					<p>Библиотеки могут создавать синтаксис, не похожий на обычный код.
+					<p>Например можно вызывать метод без "."
+					<pre><code class="scala">
+val v = Vector.fill(10)(Random.nextInt(20) - 10)
+def positive(i: Int) = i &gt; 0
+
+val (pos, neg) = v.partition(positive)
+
+val (pos2, neg2) = v partition positive	
+					</code></pre>
+					<p>И еще есть другая "магия".
+				</section>
+
+				<section>
+					<p>Тесты на Specs2 выглядят вот так:
+					<pre><code class="scala">
+import org.specs2.mutable.Specification
+
+class SorterTest extends Specification {
+  "sort function" should {
+    "preserve vector length" in {
+      val vector = Vector(5, 10, 343, 43, 1)
+
+      Sorter.sort(vector) must have size vector.length
+    }
+  }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Как запустить тест?
+
+					<p>В консоли "sbt test"
+
+					<p>В IDEA: в выпадающем меню у класса с тестом - "Run".
+
+				</section>
+
+				<section>
+					<p>В библиотеке много готовых условий для коллекций:
+					<pre><code class="scala">
+Seq(1, 2, 3) must beSorted
+Seq(1, 2, 3) must contain(2)
+Seq(2, 4, 1) must containTheSameElementsAs(Seq(1, 4, 2))
+					</code></pre>
+					<p>(читайте <a target="_blank" href="https://etorreborre.github.io/specs2/guide/SPECS2-4.0.2/org.specs2.guide.Matchers.html#out-of-the-box">документацию</a>)
+				</section>
+
+				<section>
+					<p>Вместе с заданием пишем тесты.
+
+					<p>Заготовка - тут: <a target="_blank" href="https://github.com/maxcom/scala-course-2018/tree/gh-pages/code/unit-test-demo">unit-test-demo</a>.
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+                                controls: true,
+                                progress: true,
+                                history: true,
+                                center: true,
+
+                                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
