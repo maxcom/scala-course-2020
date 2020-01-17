@@ -16,7 +16,7 @@
 title: Курс программирования на языке Scala, 2020
 email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Разработка на языке Scala. Введение в язык, потоки и асинхронное программирование,
+  Разработка на языке Scala. Введение в язык. Потоки и асинхронное программирование.
   HTTP и REST.
 baseurl: "/scala-course-2020" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
