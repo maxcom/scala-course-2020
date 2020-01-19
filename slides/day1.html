@@ -380,6 +380,12 @@ for {
 				</section>
 
 				<section>
+					<p>Домашние задания: независимые или
+					"большой" проект?
+					<p>решим вместе на второй лекции
+				</section>
+
+				<section>
 					<h2>Пара (tuple)</h2>
 
 					Комбинация из двух значений:
@@ -700,15 +706,48 @@ vector.count(x ⇒ x.isSuccess)
 				
 				<section>
 					<h2>Домашнее задание</h2>
+				</section>
 
-					Реализуем сортировку слиянием (merge sort)<br> для Vector[Int]
+				<section>
+					<h3>Задание 1: merge sort</h3>
+					Реализуем сортировку слиянием<br> для Vector[Int]
 
 					<p>Описание алгоритма: <a target="_blank" href="https://ru.wikipedia.org/wiki/%D0%A1%D0%BE%D1%80%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%BA%D0%B0_%D1%81%D0%BB%D0%B8%D1%8F%D0%BD%D0%B8%D0%B5%D0%BC">на wikipedia</a> 
 					<p>Неплохая <a target="_blank" href="https://www.cs.usfca.edu/~galles/visualization/ComparisonSort.html">визуализация</a><br> (надо выбрать "merge sort")
 				</section>
 
 				<section>
-					<p>Deadline - утро среды следующей недели.
+					<h3>Задание 2: top-n sort</h3>
+					<p>Ищем N самых меньших значений, не выполняя полной сортировки. Повторяющиеся значения не теряем.
+
+					<p>Один проход по вектору, собираем N результатов по ходу движения.
+
+					<p>Используем всё что найдем в стандартной библиотеке.
+				</section>
+
+				<section>
+					<h3>Задание 3: уникальный merge sort</h3>
+					<p>Модифицируем merge sort так, чтобы он выдавал только уникальные
+					значения.
+					<p>Дубли убираем в при merge.
+				</section>
+
+				<section>
+					<p>Решение должно давать те же результаты что и
+					<pre><code class="scala">
+topn(input: Vector[Int], n: Int) = input.sorted.take(n)
+					</code></pre>
+					<p>только без полной пересортировки
+				</section>
+
+				<section>
+					<p>Семинар 29-го января
+
+					<p>Тема: разбор решений и проблем.<br> Unit-тесты и scalacheck.
+				</section>
+
+				<section>
+					<p>Решение ждем в понедельник, в крайнем случае к семинару.
 					<p class="fragment">Простой вариант - <a href="mailto:m.valyanskiy@solarsecurity.ru">m.valyanskiy@solarsecurity.ru</a>.
 					<p class="fragment">Присылайте только исходники; код должен работать!
 				</section>
@@ -721,85 +760,6 @@ vector.count(x ⇒ x.isSuccess)
 						<li>Добавляйте мне доступ - @maximvalyanskiy
 						<li>Киньте ссылку на gitlab мне на почту
 					</ul>
-				</section>
-
-				<section>
-					<h2>Unit-тесты<sup>*</sub></h2>
-					<p><small>дополнительная часть, если успеем</small>
-				</section>
-
-				<section>
-					<p>Напишем несколько тестов для функции сортировки.
-
-					<p class="fragment">Используем фреймворк Specs2
-				</section>
-
-				<section>
-					<p>Зачем нужны тесты?
-					<p class="fragment">Убедиться, что функция работает.
-					<p class="fragment">"Подстраховать" будущие изменения.
-				</section>
-
-				<section>
-					<p>Тесты кладут в специальную папку "test".
-					<p class="fragment">Они не попадают в production код.
-					<p class="fragment">Unit-тесты запускаются в сборочном окружении.
-				</section>
-
-				<section>
-					<p>Библиотеки могут создавать синтаксис, не похожий на обычный код.
-					<p>Например можно вызывать метод без "."
-					<pre><code class="scala">
-val v = Vector.fill(10)(Random.nextInt(20) - 10)
-def positive(i: Int) = i &gt; 0
-
-val (pos, neg) = v.partition(positive)
-
-val (pos2, neg2) = v partition positive	
-					</code></pre>
-					<p>И еще есть другая "магия".
-				</section>
-
-				<section>
-					<p>Тесты на Specs2 выглядят вот так:
-					<pre><code class="scala">
-import org.specs2.mutable.Specification
-
-class SorterTest extends Specification {
-  "sort function" should {
-    "preserve vector length" in {
-      val vector = Vector(5, 10, 343, 43, 1)
-
-      Sorter.sort(vector) must have size vector.length
-    }
-  }
-}
-					</code></pre>
-				</section>
-
-				<section>
-					<p>Как запустить тест?
-
-					<p>В консоли "sbt test"
-
-					<p>В IDEA: в выпадающем меню у класса с тестом - "Run".
-
-				</section>
-
-				<section>
-					<p>В библиотеке много готовых условий для коллекций:
-					<pre><code class="scala">
-Seq(1, 2, 3) must beSorted
-Seq(1, 2, 3) must contain(2)
-Seq(2, 4, 1) must containTheSameElementsAs(Seq(1, 4, 2))
-					</code></pre>
-					<p>(читайте <a target="_blank" href="https://etorreborre.github.io/specs2/guide/SPECS2-4.0.2/org.specs2.guide.Matchers.html#out-of-the-box">документацию</a>)
-				</section>
-
-				<section>
-					<p>Вместе с заданием пишем тесты.
-
-					<p>Заготовка - тут: <a target="_blank" href="https://github.com/maxcom/scala-course-2018/tree/gh-pages/code/unit-test-demo">unit-test-demo</a>.
 				</section>
 			</div>
 
