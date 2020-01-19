@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Базовые типы Scala и pattern matching</title>
+		<title>Введение в Scala. Case классы и pattern matching</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/moon.css">
@@ -25,113 +25,80 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<h2>Часть 1. Базовые типы Scala и pattern matching</h2>
-					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2018/</small></a>
+					<h2>Часть 1. Введение в Scala. Case классы и pattern matching</h2>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
 					<h3>План</h2>
 					<ol>
-						<li>Материалы курса, обратная связь
-						<li>Обзор курса
-						<li>Средства разработки и первые шаги
-						<li>Case-классы
+						<li>Орг. вопросы.
+						<li>Почему Scala? Обзор курса.
+						<li>Средства разработки.
+						<li>Обзор синтаксиса.
+						<li>Case-классы.
 						<li>Алгебраические типы. 
-						<li>Pattern matching
+						<li>Pattern matching.
+						<li>Домашнее задание.
 					</ol>
 				</section>
+
 				<section>
-					<h3>Материалы курса и обратная связь</h3>
+					<p>Максим Валянский
+					<p>окончил ВМиК в 2001 году;
+					<p>занимаюсь разработкой ПО сколько себя помню;
+					<p>работаю архитектором в компании<br>«Ростелеком-Солар».
+				</section>
+
+				<section>
+					<p>Лекции
+					<ul>
+						<li>Каждую пятницу в 17:30.
+						<li>Две части по ~40минут, перерыв 5 минут.
+						<li>Видео будет на youtube через 1-2 дня.
+					</ul>
+				</section>
+
+				<section>
+					<p>Семинары
+					<ul>
+						<li>Каждую среду в 17:30.
+						<li>Свои ноутбуки!
+						<li>Заранее установить ПО (расскажу).
+					</ul>
+				</section>
+
+				<section>
+					<h3>Материалы курса и чат</h3>
 					<p>Слайды, примеры программ и другие файлы доступны в репозитарии 
-					<a href="https://github.com/maxcom/scala-course">https://github.com/maxcom/scala-course</a>.
+					<a href="https://github.com/maxcom/scala-course-2020">https://github.com/maxcom/scala-course-2020</a>.
 					Содержимое будет пополняться по ходу курса.
 					</p>
 					<p>Для обсуждений и вопросов по курсу используем telegram чат 
-					<a target="_blank" href="https://t.me/joinchat/EWDmyw3hkqatbDQ_BZAl4w">@scalacourse2018</a> (доступ по ссылке).</p>
+					<a target="_blank" href="https://t.me/joinchat/EWDmyxc8B332zBepkffzBw">@scalacourse2020</a> (доступ по ссылке).</p>
 				</section>
 
 				<section>
-					<p>Курс читает Максим Валянский
-					<p>окончил ВМиК в 2001 году
-					<p>занимаюсь разработкой ПО сколько себя помню 
-					<p>работаю архитектором в компании Solar Security
+					<h2>Почему Scala?</h2>
 				</section>
 
 				<section>
-					Кто мы такие и почему Scala?
+					<p>До Scala в продукте были:<br> Scheme (Lisp), OCaml,
+					Java, Python, C++ и др.
 				</section>
 
 				<section>
-					<p>Мы разрабочики из компании Solar Security.
-					<p>Компания занимается:
+					<p>Хотелось:
 					<ul>
-						<li>Разработка продуктов, решающих задачи ИБ в компаниях.
-						<li>Аутсорсинг ИБ
+						<li>Качественную платформу, средства разработки и библиотеки.
+						<li class="fragment">Функциональное программирование<sup>*</sup>
+						<p class="fragment"><small>* хотя каждый разработчик по своему понимает что такое ФП</small>
 					</ul>
-				</section>
-
-				<section>
-					<p>Мы занимаемся "Дозором" – инструментом контроля коммуникаций сотрудников, выявления ранних признаков корпоративного мошенничества и проведения расследований.<br><br>
-					<a target="_blank" href="https://solarsecurity.ru/products/solar_dozor/">https://solarsecurity.ru/products/solar_dozor/</a>
-				</section>
-
-				<section>
-					<p>Продукту более 18 лет.
-					<p class="fragment">Первые версии написаны на Scheme – 
-					функциональном динамическом языке, диалекте Lisp.
-				</section>
-
-				<section>
-					<p>В ходе эволюции у нас появилось много компонентов на Java.
-					<p class="fragment">Java это отличный runtime, opensource community,
-					библиотеки для интеграции со сторонним ПО.
-				</section>
-
-				<section>
-					<p>Но сейчас мы отказались и от Scheme,<br> и от языка Java в "Дозоре".
-					<p><small>(хотя у нас еще много Java кода)</small></p>
-				</section>
-
-				<section>
-					<p>Scheme (mzscheme, racket) сейчас это:
-					<ul>
-						<li class="fragment">Плохой runtime – медленный, много ошибок, проблемы с многопоточностью
-						<li class="fragment">Мало готовых библиотек, плохое качество
-
-						<li class="fragment">Плохие средства отладки и диагностики
-
-						<li class="fragment">Сложности с поиском программистов
-					</ul>
-				</section>
-
-				<section>
-					<p>Но мы все еще любим функциональное программирование<sup>*</sup>
-					<p class="fragment"><small>* хотя каждый разработчик по своему понимает что такое ФП</small>
-				</section>
-
-				<section>
-					<img src="java.jpg">
 				</section>
 
 				<section>
 					<p>Мы верим что функциональной программирование сделает наш софт
 					качественнее, а разработку – более быстрой и предсказуемой.
-				</section>
-
-				<section>
-					<p>Что не так в Java?
-					<ul>
-						<li class="fragment">Изменяемое состояние и побочные эффекты везде
-						<li class="fragment">Простые вещи делаются сложно - много избыточного кода
-						<li class="fragment">Сложные вещи делаются еще сложнее - вспомним Spring Framework и J2EE
-						<li class="fragment">Не достаточно строгая система типов
-						<li class="fragment">...
-					</ul>
-				</section>
-
-				<section>
-					<p>Мы выбрали JVM как платформу и остановились на двух 
-					языках – Scala и Clojure.
 				</section>
 
 				<section>
@@ -155,11 +122,6 @@
 				</section>
 
 				<section>
-					<p>хотя есть что рассказать</p>
-					<img src="korabli2.jpg">
-				</section>
-
-				<section>
 					<p>рассмотрим базовые возможности языка<br>
 					и перейдем к практике
 				</section>
@@ -171,8 +133,6 @@
 						<li>Потоки и асинхронное программирование.
 						<li>Разработка и использование веб-сервисов
 					</ol>
-					<p>После каждого занятия будут предложены задачки по теме и одно
-					большое практическое задание на весь курс.</p>
 				</section>
 
 
@@ -190,20 +150,12 @@
 						<li>Ставим IDEA, запускаем
 						<li>Добавляем Scala plugin (configure -&gt; plugins)
 						<li>Создаем новый проект Scala
-							<li>Выбираем sbt; версии самые новые <br>(Scala 2.12.4; sbt 1.1.0)
+						<li>Выбираем sbt; версии самые новые <br>(Scala 2.13.1; sbt 1.3.7)
 					</ol>
 				</section>
 
 				<section>
-					<h2>Hello, World!</h2>
-
-					<pre><code class="scala">
-object HelloWorld {
-  def main(args: Array[String]): Unit = {
-    println("Hello, world!")
-  }
-}
-					</code></pre>
+					<h2>Live demo</h2>
 				</section>
 
 				<section>
@@ -219,44 +171,212 @@ src/test        -- исходные файлы и ресурсы тестов
 src/test/scala  -- код тестов на Scala
 target          -- результат компиляции
 					</code></pre>
+					<p>(live demo)
 				</section>
 
 				<section>
-					Интерактивная разработка: Scala Worksheet
+					<p>Синтаксис Scala: смесь Си + ML.
 
-					<img src="worksheet.png">
+					<p class="fragment">"Better Java", C, Python, ...
 				</section>
 
 				<section>
-					<h3>Переменные и функции</h3>
-
-					<p>можно присвоить имя результату выражения:
-					<pre><code class="scala">val something = 10 // константа</code></pre>
-					<pre><code class="scala">var something: Int = 10 // переменная</code></pre>
-					<p>тип выводится автоматически
+					<p>справочник по языку<br>
+					<img src="impatient.jpg"><br>
+					<small>или google + stackoverflow</small>
 				</section>
 
 				<section>
-					<p>В Scala почти всё является выражением:
+					<h2>Hello, World!</h2>
+
 					<pre><code class="scala">
-val ageGroup = if (age &gt;= 18) "grownup" else "minor"
-					</code></pre>
-					<pre><code class="scala">
-val result: Int = {
-  val one = 1
-  val two = 2
-  
-  one + two // "возвращается" последнее значение в блоке
+object HelloWorld extends App {
+  println("Hello, world!")
 }
 					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<pre><code class="scala">
+// класс для JVM
+// наследование от App
+object HelloWorld extends App {
+  println("Hello, world!")
+}
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+
+				<section>
+					<p>Не удается запустить в IDEA?
+
+					<p>Отключите Gradle plugin<br>
+					<a href="https://youtrack.jetbrains.com/issue/IDEA-228180">https://youtrack.jetbrains.com/issue/IDEA-228180</a>
+				</section>
+
+				<section>
+					<h2>Live demo</h2>
+				</section>
+
+				<section>
+					<p>Блоки вместо выражений
+					<pre><code class="scala">
+object HelloWorld extends App {
+  println({
+    "Hello, world!"
+  })
+}
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<pre><code class="scala">
+object HelloWorld extends App {
+  println({
+    var str = "Hello, " // переменная
+    val add = "world!" // константа
+
+    str += add
+
+    str // "возвращается" последнее значение в блоке
+  })
+}
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<p>Иммутательность "по-умолчанию":
+					<ul>
+						<li>var только если будем менять
+						<li>изменяемые коллекции и др. только когда нужно
+					</ul>
+				</section>
+
+				<section>
+					<h2>Live demo</h2>
+				</section>
+
+				<section>
+					<p>объявляем функцию
+					<pre><code class="scala">
+object HelloWorld extends App {
+  println({
+    def square(x: Int) = x * x
+
+    square(10)
+  })
+}
+					</code></pre>
+					<p>(live demo)
 				</section>
 
 				<section>
 					объявление функции:
 					<pre><code class="scala">def square(x: Int) = x * x</code></pre>
 					функция - это значение:
-					<pre><code class="scala">val f: (Int ⇒ Int) = square</code></pre>
+					<pre><code class="scala">val f: (Int =&gt; Int) = square</code></pre>
 					(её тип - Function1[Int, Int])
+				</section>
+
+
+				<section>
+					<p>if тоже является выражением:
+					<pre><code class="scala">
+def abs(x: Int) = {
+  if (x &gt;= 0) {
+    x
+  } else {
+    -x
+  } // и никакого "return"!
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Типы выводятся в:
+					<ul>
+						<li>val и var
+						<li>возвращаемых значениях функций и методов
+					</ul>
+					<p>(кроме рекурсивных)
+				</section>
+
+				<section>
+					<p>Рекомендуется указывать типы:
+					<ul>
+						<li>публичных API
+						<li>var
+				</section>
+
+				<section>
+					<h2>Live demo</h2>
+				</section>
+
+				<section>
+					<p>while</p>
+					<pre><code class="scala">
+var a: Int = 0
+
+while (a&lt;10) {
+  a += 1
+  println(a)
+}  // бывает еще do { ... } while
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<p>for - не цикл, но "прикидывается" им:
+					<pre><code class="scala">
+for (i &lt;- 0 to 10) {
+  println(i)
+}
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<pre><code class="scala">
+for (i &lt;- List(1, 2, 3)) {
+  println(i)
+}
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<p>for .. yield - "List comprehension" из Python
+					<pre><code class="scala">
+println(for (v &lt;- List(1, 2, 3)) yield {
+  v * v
+})
+
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<p>с условием
+					<pre><code class="scala">
+for {
+  v &lt;- List(1, 2, 3, 4) if v%2 == 0
+} yield {
+  v * v
+}
+					</code></pre>
+					<p>(live demo)
+				</section>
+
+				<section>
+					<p>писать на Scala - не сложно
+				</section>
+
+				<section>
+					<h2>Перерыв 5 минут</h2>
 				</section>
 
 				<section>
