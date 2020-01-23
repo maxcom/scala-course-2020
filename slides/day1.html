@@ -26,7 +26,7 @@
 			<div class="slides">
 				<section>
 					<h2>Часть 1. Введение в Scala. Case классы и pattern matching</h2>
-					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</small></a>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
@@ -45,7 +45,7 @@
 
 				<section>
 					<p>Максим Валянский
-					<p>окончил ВМиК в 2001 году;
+					<p>окончил ВМиК МГУ в 2001 году;
 					<p>занимаюсь разработкой ПО сколько себя помню;
 					<p>работаю архитектором в компании<br>«Ростелеком-Солар».
 				</section>
@@ -91,8 +91,10 @@
 					<p>Хотелось:
 					<ul>
 						<li>Качественную платформу, средства разработки и библиотеки.
-						<li class="fragment">Функциональное программирование<sup>*</sup>
-						<p class="fragment"><small>* хотя каждый разработчик по своему понимает что такое ФП</small>
+						<li class="fragment">Функциональное программирование<sup>*</sup><br>
+						<small class="fragment">* хотя каждый разработчик по своему понимает что такое ФП</small>
+						<li class="fragment">"Крутые" библиотеки/framework'и<br>
+						<small class="fragment">В момент перехода для нас это были Akka и Play Framework</small>
 					</ul>
 				</section>
 
@@ -336,6 +338,7 @@ for (i &lt;- 0 to 10) {
   println(i)
 }
 					</code></pre>
+					<br><small>подробнее о for на третьем занятии</small>
 					<p>(live demo)
 				</section>
 
@@ -445,7 +448,7 @@ val (first, second) = v.splitAt(v.length / 2)
 
 				<section>
 					<h2>Case-классы</h2>
-					<p>Механизм для создания собственных типов для данных.
+					<p>Механизм для создания собственных<br> типов для данных.
 					<pre><code class="scala">
 case class Address(`type`: String, value: String) {
   def toStringAddress = s"${`type`}:$value"
@@ -561,18 +564,11 @@ Plus(Number(2), Number(2)).eval</code></pre>
 				</section>
 
 				<section>
-					<h3>Более правильная версия примера</h3>
-					<pre><code class="scala">
-sealed trait Expr extends Product with Serializable
-
-final case class Number(value: Int) extends Expr
-final case class Plus(lhs: Expr, rhs: Expr) extends Expr
-final case class Minus(lhs: Expr, rhs: Expr) extends Expr
-					</code></pre>
+					<p>Сделаем более правильное определение ADT
 				</section>
 
 				<section>
-					почему "extend Product with Serializeable"?
+					Проблема 1:
 					<pre><code class="scala">
 val number: Expr = Number(3)
 val expr = Plus(Number(2), Number(2))
@@ -585,12 +581,24 @@ buffer += number
 					<pre class="fragment"><code class="scala">
 ArrayBuffer[Product with Serializable with Expr]
 					</code></pre>
+					<p class="fragment">а изменяемые коллекции - инвариантные
 				</section>
 
 				<section>
-					почему "final case class"?
-					<p>запрещаем наследование
-					<p>помогаем компилятору
+					Проблема 2: Наследование
+					<p class="fragment">запрещаем наследование - "final case class"
+				</section>
+
+
+				<section>
+					<h3>Более правильная версия примера</h3>
+					<pre><code class="scala">
+sealed trait Expr extends Product with Serializable
+
+final case class Number(value: Int) extends Expr
+final case class Plus(lhs: Expr, rhs: Expr) extends Expr
+final case class Minus(lhs: Expr, rhs: Expr) extends Expr
+					</code></pre>
 				</section>
 
 				<section>
@@ -607,7 +615,7 @@ ArrayBuffer[Product with Serializable with Expr]
 					<pre><code class="scala">
 val v = Vector(1, 2, 3, 4, 5)
 
-val r: Option[Int] = v.find(x ⇒ x > 2)
+val r: Option[Int] = v.find(x =&gt; x > 2)
 
 // r = Some(3)				
 					</code></pre>
@@ -645,6 +653,7 @@ try {
 } catch {
   case ex: ArithmeticException ⇒
     println(ex.getMessage)
+    1
 }
 					</code></pre>
 					<p><small>try - тоже выражение, возвращает последнее значение</small>
@@ -685,7 +694,7 @@ val vector = Vector.fill(10) {
   }
 }
 
-vector.count(x ⇒ x.isSuccess)				
+vector.count(x =&gt; x.isSuccess)				
 					</code></pre>
 				</section>
 
