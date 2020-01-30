@@ -26,7 +26,6 @@
 			<div class="slides">
 				<section>
 					<h2>Часть 2. Иммутабельность и базовые структуры данных. Работа со списками.</h2>
-					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
@@ -699,26 +698,60 @@ def count(list: List[Int], f: Int ⇒ Boolean): Int = {
 
 				<section>
 					<h2>Домашнее задание</h2>
-					Множество на основе бинарных деревьев.
+					Множество на основе бинарных деревьев поиска.
 				</section>
 
 				<section>
-					TODO
+					<img src="Binary_search_tree.svg">
+					<p><a href="https://ru.wikipedia.org/wiki/%D0%94%D0%B2%D0%BE%D0%B8%D1%87%D0%BD%D0%BE%D0%B5_%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D0%BE_%D0%BF%D0%BE%D0%B8%D1%81%D0%BA%D0%B0" target="_blank">wikipedia</a>
+				</section>
+
+				<section>
+					<ul>
+						<li>immutable
+						<li class="fragment">моделируем алгебраическим типом
+						<li class="fragment">операция вставки (без балансировки)
+						<li class="fragment">операция проверки наличия элемента
+						<li class="fragment">операция foreach (в любом порядке)
+					</ul>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+trait SimpleTreeSet {
+  def +(v: Int): SimpleTreeSet
+  def contains(v: Int): Boolean
+  def foreach(f: Int =&gt; Unit): Unit
+}
+					</code></pre>
 				</section>
 
 				<section>
 					<h2>Как выкладывать решение</h2>
-					TODO
+				</section>
+
+				<section>
+					<ul>
+						<li>Только git (gitlab/github по выбору, выбор не меняем)
+						<li class="fragment">Начинаем с пустого коммита (git commit --allow-empty)
+						<li class="fragment">Отпустого коммита создаем ветку "reviewed", не забываем push
+						<li class="fragment">Готовое решение в merge request с master на reviewed
+						<li class="fragment">Меня назначьте assignee, ссылку в почту
+					</ul>
 				</section>
 
 				<section>
 					<h2>Семинар</h2>
 
-					Исследование производительности коллекций при помощи JMH.
+					Исследование производительности коллекций<br> при помощи JMH.
 				</section>
 
 				<section>
-					TODO
+					<p>Стартовый код в <a href="https://github.com/maxcom/scala-course-2020">репозитории</a><br> (каталог code/seminar2).
+					<p>Заранее отройте его в IDEA. Запустите командой 
+
+<pre><code>sbt "jmh:run -f 0 -wi 1 -i 1"
+</code></pre>
 				</section>
 
 				<section>
@@ -743,14 +776,6 @@ def count(list: List[Int], f: Int ⇒ Boolean): Int = {
     extends Product with Serializable 
 					</code></pre>
 					<p><small>Специальная головная ячейка списка</small>
-				</section>
-
-				<section>
-					<p>Вопрос: чем это отличается от обычного списка?
-					<pre><code class="scala">
-  final case class NonEmptyList[+A](head: A, tail: List[A]) 
-    extends Product with Serializable 
-					</code></pre>
 				</section>
 
 				<section>
