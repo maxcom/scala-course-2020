@@ -33,7 +33,6 @@
 					<h3>План</h2>
 					<ol>
 						<li>Почему мы говорим о List?
-						<li>Обзор большого практического задания
 						<li>Функциональный подход и иммутабельность. 
 						<li>Персистентные структуры данных на примере List.
 						<li>Работа со списками: "классика" и ListBuffer.
@@ -45,7 +44,28 @@
 
 				<section>
 					<h2>Почему List?</h2>
-					TODO
+					<img src="cows.jpg">
+				</section>
+
+				<section>
+					Две причины, первая:
+					<ul>
+						<li class="fragment">Классическая структура, придуманная в языке Lisp
+						<li class="fragment">Есть во всех ФП языках, например в OCaml, Haskell, F#. И еще в Erlang.
+						<li class="fragment">База для более сложных структур.
+					</ul>
+				</section>
+
+				<section>
+					Вторая. Мой личный top-3 проблем производительности Scala кода.
+				</section>
+
+				<section>
+					<ol reversed>
+						<li>Построчная работа с БД.
+						<li class="fragment">Отладочное журналирование, даже выключенное.
+						<li class="fragment">Неаккуратная работа с коллекциями.
+					</ol>
 				</section>
 
 				<section>
@@ -147,13 +167,7 @@ object UserRepository {
 				</section>
 
 				<section>
-					<h3>Классический связных список: List[T]</h3>
-
-					<p>Структура стала популярной благодаря языку Lisp
-
-					<p class="fragment">Используется в Ocaml, Haskell, Erlang и др.
-
-					<p class="fragment">Хороша для обучения, не слишком эффективна на практике
+					<h3>Классический связных список:<br> List[T]</h3>
 				</section>
 
 				<section>
@@ -164,10 +178,10 @@ object UserRepository {
 				</section>
 
 				<section>
-					<p>List - алгебраический тип с двумя вариантами:
+					<p>List[T] - алгебраический тип с двумя вариантами:
 
 					<ul>
-						<li> ::(head, tail) - элемент списка, обычно называют "cons"
+						<li> ::(head: T, tail: List[T]) - элемент списка, обычно называют "cons"
 						<li> Nil - пустой список
 					</ul>
 
@@ -196,7 +210,7 @@ val list3 = 20 :: list
 				</section>
 
 				<section>
-					<p>Декомпозиция на голову и хвост – "бесплатная" операция.
+					<p>Декомпозиция на голову и хвост – <br>"бесплатная" операция.
 					<p>Плохой (но популярный) способ:
 
 					<pre><code class="scala">
@@ -289,6 +303,26 @@ def dropLoop(list: List[Int], n: Int): List[Int] = {
 				</section>
 
 				<section>
+					<p>Хвостовая рекурсия — частный случай рекурсии, при котором любой рекурсивный вызов является последней операцией перед возвратом из функции.</p>
+					<p class="fragment">Хвостовая рекурсия автоматически заменяется на цикл компилятором
+					(в границах одного файла!)
+				</section>
+
+				<section>
+					<pre><code class="scala">
+@tailrec // оптимизация или ошибка
+def drop(list: List[Int], n: Int): List[Int] = {
+  if (n &gt; 0 &amp;&amp; list.nonEmpty) {
+    drop(list.tail, n - 1)
+  } else {
+    list
+  }
+}
+					</code></pre>
+				</section>
+
+
+				<section>
 					Получение элемента по индексу:
 
 					<pre><code class="scala">
@@ -304,26 +338,6 @@ def apply(n: Int): Int = {
 					</code></pre>
 
 					<p>количество операций пропорционально N
-				</section>
-
-				<section>
-					Реверс списка:
-					<pre><code class="scala">
-def reverse(list: List[Int]): List[Int] = {
-  def rev(target: List[Int], remains: List[Int]): List[Int] = {
-    remains match {
-      case head :: tail ⇒
-        rev(head :: target, tail)
-      case Nil ⇒
-        target
-    }
-  }
-
-  rev(Nil, list)
-}
-
-					</code></pre>
-					<p>(легко можно заменить на цикл)<p>
 				</section>
 
 				<section>
@@ -365,22 +379,23 @@ def append(list: List[Int], v: Int): List[Int] = {
 				</section>
 
 				<section>
-					<p>Хвостовая рекурсия — частный случай рекурсии, при котором любой рекурсивный вызов является последней операцией перед возвратом из функции.</p>
-					<p class="fragment">Хвостовая рекурсия автоматически заменяется на цикл компилятором
-					(в границах одного файла!)
-				</section>
-
-				<section>
+					Реверс списка:
 					<pre><code class="scala">
-@tailrec // оптимизация или ошибка
-def drop(list: List[Int], n: Int): List[Int] = {
-  if (n &gt; 0 &amp;&amp; list.nonEmpty) {
-    drop(list.tail, n - 1)
-  } else {
-    list
+def reverse(list: List[Int]): List[Int] = {
+  def rev(target: List[Int], remains: List[Int]): List[Int] = {
+    remains match {
+      case head :: tail ⇒
+        rev(head :: target, tail)
+      case Nil ⇒
+        target
+    }
   }
+
+  rev(Nil, list)
 }
+
 					</code></pre>
+					<p>(легко можно заменить на цикл)<p>
 				</section>
 
 				<section>
@@ -504,6 +519,16 @@ final case class ::[B](override val head: B,
 				</section>
 
 				<section>
+					<p>Builder - абстракция для "конструкторов" неизменяемых типов
+
+					<pre><code class="scala">
+val builder = Vector.newBuilder[Int]
+builder += 1
+builder.result()
+					</code></pre>
+				</section>
+
+				<section>
 					<p>map - применяет функцию ко всем элементам списка
 
 					<pre><code class="scala">
@@ -542,10 +567,15 @@ list.map(x ⇒ List.fill(2)(x)).flatten
 					<pre><code class="scala">
 list.flatMap(x ⇒ List.fill(2)(x))
 					</code></pre>
+
+					<pre class="fragment"><code class="scala">
+list.flatMap(List.fill(2))
+					</code></pre>
 				</section>
 
 				<section>
-					<p>Как превратить List[Option[Int]] в List[Int]?
+					<p>Как превратить List[Option[Int]] в List[Int]?<br>
+					(без flatten)
 				</section>
 
 				<section>
@@ -568,6 +598,18 @@ list collect {
   case Some(v) ⇒ v
 }
 					</code></pre>
+				</section>
+
+				<section>
+					<p>for тоже так может:
+					<pre><code class="scala">
+val list = List(Some(1), None, Some(3))
+
+for {
+  Some(v) &lt;- list
+} yield v
+					</code></pre>
+
 				</section>
 
 				<section>
@@ -653,23 +695,6 @@ def count(list: List[Int], f: Int ⇒ Boolean): Int = {
 }
 					</code></pre>
 					<p><small>еще можно реализовать рекурсивным обходом списка</small>
-				</section>
-
-				<section>
-					Неэффективность List:
-
-					<ul>
-						<li>Большая нагрузка на сборщик мусора
-						<li class="fragment">Большой overhead по памяти (в два раза больше массива)
-						<li class="fragment">Многие операции над списком O(N)
-					</ul>
-
-					<p class="fragment">
-					На 3-м занятии поговорим о других структурах данных
-				</section>
-				<section>
-					<p>Посмотрите на исследование
-					производительность коллекций Scala: <a target="_blank" href="http://www.lihaoyi.com/post/BenchmarkingScalaCollections.html">Benchmarking Scala Collections</a>.
 				</section>
 
 				<section>
