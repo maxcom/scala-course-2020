@@ -226,10 +226,10 @@ if (l.nonEmpty) {
 					<p>Используем pattern matching:
 					<pre><code class="scala">
 l match {
-  case head :: tail ⇒ // head +: tail
+  case head :: tail =&gt; // head +: tail
     println(head)
     println(tail)
-  case Nil ⇒         // Seq()
+  case Nil =&gt;         // Seq()
     println("empty")
 }
 					</code></pre>
@@ -240,13 +240,13 @@ l match {
 					<pre><code class="scala">
 l match {
   // через конструктор - точное число элементов
-  case Seq(one) ⇒
+  case Seq(one) =&gt;
      s"exactly $one"
   // как минимум один элемент
-  case one +: _ ⇒ 
+  case one +: _ =&gt; 
     s"at least one element $one"
   // второй элемент 10; выкинем его и преобразуем в строку
-  case head +: 10 +: tail ⇒
+  case head +: 10 +: tail =&gt;
     (head +: tail).mkString
 }
 					</code></pre>
@@ -262,9 +262,9 @@ l match {
 					<pre><code class="scala">
 def sum(list: List[Int]): Int = {
   list match {
-    case Nil ⇒ 
+    case Nil =&gt; 
       0
-    case head :: tail ⇒
+    case head :: tail =&gt;
       head + sum(tail)
   }
 }
@@ -344,9 +344,9 @@ def apply(n: Int): Int = {
 					<pre><code class="scala">
 def append(list: List[Int], v: Int): List[Int] = {
   list match {
-    case Nil ⇒ 
+    case Nil =&gt; 
       v :: Nil
-    case head :: tail ⇒
+    case head :: tail =&gt;
       head :: append(tail, v)
   }
 }
@@ -383,9 +383,9 @@ def append(list: List[Int], v: Int): List[Int] = {
 def reverse(list: List[Int]): List[Int] = {
   def rev(target: List[Int], remains: List[Int]): List[Int] = {
     remains match {
-      case head :: tail ⇒
+      case head :: tail =&gt;
         rev(head :: target, tail)
-      case Nil ⇒
+      case Nil =&gt;
         target
     }
   }
@@ -420,7 +420,7 @@ l.filter(_ % 2 == 0)
 					<div class="fragment">
 					<p>эквивалентно
 					<pre><code class="scala">
-l.filter(x ⇒ x % 2 == 0)					
+l.filter(x =&gt; x % 2 == 0)					
 					</code></pre>
 					</div>
 				</section>
@@ -428,11 +428,11 @@ l.filter(x ⇒ x % 2 == 0)
 				<section>
 					Простая реализация:
 					<pre><code class="scala">
-def filter(list: List[Int], f: Int ⇒ Boolean): List[Int] = {
+def filter(list: List[Int], f: Int =&gt; Boolean): List[Int] = {
   list match {
-    case head +: tail if f(head) ⇒ head +: filter(tail, f)
-    case _ +: tail               ⇒ filter(tail, f)
-    case Nil                     ⇒ Nil
+    case head +: tail if f(head) =&gt; head +: filter(tail, f)
+    case _ +: tail               =&gt; filter(tail, f)
+    case Nil                     =&gt; Nil
   }
 }
 
@@ -444,12 +444,12 @@ filter(list, _ % 2 == 0)
 				<section>
 					<p>Плохая идея</p>
 					<pre><code class="scala">
-def filter(list: List[Int], f: Int ⇒ Boolean): List[Int] = {
+def filter(list: List[Int], f: Int =&gt; Boolean): List[Int] = {
   def rec(list: List[Int], acc: List[Int]): List[Int] = {
     list match {
-      case head +: tail if f(head) ⇒ rec(tail, acc :+ head)
-      case _ +: tail               ⇒ rec(tail, acc)
-      case Nil                     ⇒ acc
+      case head +: tail if f(head) =&gt; rec(tail, acc :+ head)
+      case _ +: tail               =&gt; rec(tail, acc)
+      case Nil                     =&gt; acc
     }
   }
 
@@ -501,7 +501,7 @@ final case class ::[B](override val head: B,
 				</section>
 
 				<section>
-					<pre><code class="scala">def filter(list: List[Int])(f: Int ⇒ Boolean): List[Int] = {
+					<pre><code class="scala">def filter(list: List[Int])(f: Int =&gt; Boolean): List[Int] = {
   val builder = ListBuffer[Int]()
   var current = list
   
@@ -531,7 +531,7 @@ builder.result()
 					<p>map - применяет функцию ко всем элементам списка
 
 					<pre><code class="scala">
-list.map(x ⇒ x * x)					
+list.map(x =&gt; x * x)					
 					</code></pre>
 
 					<p>можно указать готовую функцию:
@@ -545,7 +545,7 @@ list.map(Math.sqrt) // для List[Double]
 					<pre><code class="scala">
 val list = List(1, 2, 3)
 
-list.map(x ⇒ List.fill(2)(x))
+list.map(x =&gt; List.fill(2)(x))
 // List[List[Int]] = List(List(1, 1), List(2, 2), List(3, 3))
 					</code></pre>
 				</section>
@@ -555,7 +555,7 @@ list.map(x ⇒ List.fill(2)(x))
 					<pre><code class="scala">
 val list = List(1, 2, 3)
 
-list.map(x ⇒ List.fill(2)(x)).flatten
+list.map(x =&gt; List.fill(2)(x)).flatten
 // List(1, 1, 2, 2, 3, 3)
 					</code></pre>
 				</section>
@@ -564,7 +564,7 @@ list.map(x ⇒ List.fill(2)(x)).flatten
 					<p>flatMap - комбинация map и flatten
 
 					<pre><code class="scala">
-list.flatMap(x ⇒ List.fill(2)(x))
+list.flatMap(x =&gt; List.fill(2)(x))
 					</code></pre>
 
 					<pre class="fragment"><code class="scala">
@@ -594,7 +594,7 @@ val list = List(Some(1), None, Some(3))
 
 list collect {
   // определяем только интересные паттерны
-  case Some(v) ⇒ v
+  case Some(v) =&gt; v
 }
 					</code></pre>
 				</section>
@@ -650,7 +650,7 @@ op(op(op(op(0, list(0)), list(1)), list(2)), list(3))
 				<section>
 					Пример: убираем повторяющиеся подряд элементы:
 					<pre><code class="scala">
-list.foldLeft(List.empty[Int]) { (acc, v) ⇒
+list.foldLeft(List.empty[Int]) { (acc, v) =&gt;
   if (acc.headOption.contains(v)) {
     acc
   } else {
@@ -674,7 +674,7 @@ list.count(_ &gt; 50)
 					<p>Реализация через filter:
 
 					<pre><code class="scala">
-def count(list: List[Int], f: Int ⇒ Boolean): Int = 
+def count(list: List[Int], f: Int =&gt; Boolean): Int = 
   list.filter(f).length
 					</code></pre>
 					<p><small>Не эффективно, создает временный список</small>
@@ -683,8 +683,8 @@ def count(list: List[Int], f: Int ⇒ Boolean): Int =
 				<section>
 					<p>Через foldLeft:
 					<pre><code class="scala">
-def count(list: List[Int], f: Int ⇒ Boolean): Int = {
-  list.foldLeft(0) { (acc, v) ⇒
+def count(list: List[Int], f: Int =&gt; Boolean): Int = {
+  list.foldLeft(0) { (acc, v) =&gt;
     if (f(v)) {
       acc + 1
     } else {
@@ -928,7 +928,7 @@ v.map(_ * 2) // Some(22)
 				<section>
 					<pre><code class="scala">
 val users = List(1 -&gt; "Petya", 11 -&gt; "Vasya", 23 -&gt; "Ivan")
-v.flatMap(id ⇒ users.find(_._1 == id)).map(_._2)
+v.flatMap(id =&gt; users.find(_._1 == id)).map(_._2)
 // Some("Vasya")
 					</code></pre>
 				</section>
