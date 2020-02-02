@@ -8,9 +8,10 @@ layout: default
 # Лекции
 
 * [Часть 1. Введение в Scala. Case классы и pattern matching](slides/day1.html) 24 января. [Версия для печати](slides/day1.html?print-pdf).
-  1. Видео: [Обзор курса и введение в Scala](https://www.youtube.com/watch?v=T-fIGEPSynM).
-  2. Видео: [Case классы и pattern matching](https://youtu.be/M5WeHhmawYQ).
+  * Видео: [Обзор курса и введение в Scala](https://www.youtube.com/watch?v=T-fIGEPSynM).
+  * Видео: [Case классы и pattern matching](https://youtu.be/M5WeHhmawYQ).
 * [Часть 2. Иммутабельность и базовые структуры данных. Работа со списками](slides/day2.html) 31 января. [Версия для печати](slides/day2.html?print-pdf).
+  * Видео: [Работа со списками](https://youtu.be/1I1A5QUBy1k).
 * Часть 3. Персистентные структуры данных. Ленивые вычисления. Монады. 7 февраля. 
 * Часть 4. Implicit значения и преобразования. Тайпклассы. Чтение и запись JSON в play-json. 14 февраля.
 * Часть 5. Базовые примитивы многопоточности. 21 февраля.
