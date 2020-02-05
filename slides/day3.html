@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Персистентные структуры данных. Ленивые вычисления. Монады.</title>
+		<title>Vector. Ленивые вычисления. LazyList и View. Монады.</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/moon.css">
@@ -25,46 +25,54 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<h2>Часть 3. Персистентные структуры данных. Ленивые вычисления. Монады.</h2>
+					<h2>Часть 3. Vector. Ленивые вычисления. LazyList и View. Монады.</h2>
 					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
 					<h3>План</h2>
 					<ol>
-						<li>Вопросы с 2-й лекции: partial function и flatten
 						<li>Критика List
-						<li>Персистентные структуры: Vector
-						<li>Практическое задание: пишем классификатор
+						<li>Vector
 						<li>"call by value" и "call by name"; lazy
 						<li>LazyList: ленивый список.
+						<li>Практическое задание: пишем классификатор
+						<li>View.
 						<li>Монады и for.
 						<li>Пример: Eval из библиотеки cats.
 					</ol>
 				</section>
 
 				<section>
-					<h3>Вопросы с 2-й лекции: partial function и flatten</h3>
-					TODO
+					<h3>Критика List</h3>
 				</section>
 
 				<section>
-					<h3>Критика List</h3>
-					TODO
+					<ul>
+						<li>Вставка в конец - только с полным копированием
+						<li>Время выполнения многих операций пропорционально длине
+						<li>Там где есть O(N), легко получается O(N^2)
+					</ul>
 				</section>
+				<section>
+					<ul>
+						<li>Занимает в два раза больше массива
+						<li class="fragment">Много элементов - нагрузка на сборщик мусора
+					</ul>
+				</section>
+
+				<section>
+						java.lang.OutOfMemoryError:<br>GC overhead limit exceeded
+				</section>
+
+				<section>
+					<p>Посмотрите на исследование
+					производительность коллекций Scala: <a target="_blank" href="http://www.lihaoyi.com/post/BenchmarkingScalaCollections.html">Benchmarking Scala Collections</a>.
+				</section>
+
 
 				<section>
 					<h3>Vector</h3>
-				</section>
-
-				<section>
-					<p>Напомним проблемы List:
-					<ul>
-						<li>Занимает в два раза больше массива
-						<li>Много элементов - нагрузка на сборщик мусора
-						<li>Время выполнения многих операций пропорционально длине
-						<li>Вставка в конец - только с полным копированием
-					</ul>
 				</section>
 
 				<section>
