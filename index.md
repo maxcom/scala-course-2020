@@ -12,7 +12,7 @@ layout: default
   * Видео: [Case классы и pattern matching](https://youtu.be/M5WeHhmawYQ).
 * [Часть 2. Иммутабельность и базовые структуры данных. Работа со списками](slides/day2.html) 31 января. [Версия для печати](slides/day2.html?print-pdf).
   * Видео: [Работа со списками](https://youtu.be/1I1A5QUBy1k).
-* Часть 3. Vector. Ленивые вычисления. LazyList и View. Монады. 7 февраля.
+* [Часть 3. Vector. Ленивые вычисления. LazyList и View. Монады](slides/day3.html) 7 февраля. [Версия для печати](slides/day3.html?print-pdf).
 * Часть 4. Implicit значения и преобразования. Тайпклассы. Чтение и запись JSON в play-json. 14 февраля.
 * Часть 5. Базовые примитивы многопоточности. 21 февраля.
 * Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
