@@ -700,7 +700,21 @@ result.value</code></pre>
 				</section>
 
 				<section>
-					TODO: stack safe рекурсия с использованием Eval
+				stack safe рекурсия с использованием Eval
+					<pre><code class="scala">def merge(seq1: List[Int], seq2: List[Int]): Eval[List[Int]] = {
+  (seq1, seq2) match {
+    case (Nil, _) =&gt; Eval.now(seq2)
+    case (_, Nil) =&gt; Eval.now(seq1)
+    case (x::xs, y::ys) =&gt;
+      if (x&lt;y) {
+        Eval.Unit &gt;&gt; merge(xs,seq2).map(x +: _)
+      } else {
+        Eval.Unit &gt;&gt; merge(seq1,ys).map(y +: _)
+      }
+  }
+}
+
+merge(List.fill(10000)(0), List.fill(10000)(1)).value</code></pre>
 				</section>
 
 				<section>
