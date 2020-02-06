@@ -494,8 +494,58 @@ fibs.take(5).toVector
 				</section>
 
 				<section>
+					TODO: тема семинара
+				</section>
+
+				<section>
 					<h3>View</h3>
-					TODO
+					<p>Временное представление коллекция для цепочек преобразований.
+					<p class="fragment">В Scala 2.12 и ранее были проблемы.
+				</section>
+
+				<section>
+					<pre><code class="scala">
+case class Person(id: Int, name: String, student: Boolean)
+
+def makeIndex(persons: Vector[Person]): Map[Int, Person] = {
+  persons.filter(_.student).map(p =&gt; p.id -&gt; p).toMap
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+case class Person(id: Int, name: String, student: Boolean)
+
+def makeIndex(persons: Vector[Person]): Map[Int, Person] = {
+  persons.view.filter(_.student).map(p =&gt; p.id -&gt; p).toMap
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Два вида View для коллекций:
+					<ul>
+						<li>SeqView - последовательный доступ
+						<li class=fragment>IndexedSeqView - доступ по индексу
+					</ul>
+				</section>
+
+				<section>
+					<p>SeqView
+					<ul>
+						<li>Ленивые map/filter/... без мемоизации
+						<li class=fragment>drop/tail/...
+						<li class=fragment>append/prepend/concat
+					</ul>
+				</section>
+
+				<section>
+					<p>IndexedSeqView
+					<ul>
+						<li>Доступ по индексу
+						<li class=fragment>slice/splitAt/... делают подколлекции без копирования
+					</ul>
 				</section>
 
 				<section>
@@ -668,12 +718,15 @@ m.flatMap(f).flatMap(g) == m.flatMap(x =&gt; f(x).flatMap(g))
 				</section>
 
 				<section>
-					<p>Free - монада, свободная о какой-то реализации логики.
+					<p>Напоминаю:
+					<ul>
+						<li>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</a>
+					</ul>
+				</section>
 
-					<p class="fragment">Собирает pipeline в структуру, которую
-					потом можно передать в интерпретатор.
-
-					<p class="fragment">Разделяет бизнес-логику и её реализацию.
+				<section>
+					<h2>Eval из Cats<sup>*</sup></h2>
+					<p><small>дополнительная часть, если успеем</small>
 				</section>
 
 				<section>
@@ -700,6 +753,14 @@ result.value</code></pre>
 				</section>
 
 				<section>
+					<ul>
+						<li>Eval.now - "жадное" выполнение
+						<li>Eval.later - "ленивое" с мемоизацией
+						<li>Eval.always - "ленивое" без мемоизации
+
+				</section>
+
+				<section>
 				stack safe рекурсия с использованием Eval
 					<pre><code class="scala">def merge(seq1: List[Int], seq2: List[Int]): Eval[List[Int]] = {
   (seq1, seq2) match {
@@ -718,9 +779,6 @@ merge(List.fill(10000)(0), List.fill(10000)(1)).value</code></pre>
 					<small>решение не эффективное, приведено для примера</small>
 				</section>
 
-				<section>
-					TODO: тема семинара
-				</section>
 
 				<section>
 					<p>Напоминаю:
