@@ -76,7 +76,7 @@
 				</section>
 
 				<section>
-					<p>Vector - современная персистентная коллекция, без этих недостатков.
+					<p>Vector - современная персистентная коллекция,<br> без этих недостатков.
 
 					<p class="fragment">Используется и в Scala, и в Clojure
 				</section>
@@ -143,7 +143,7 @@
 				<section>
 					<p>для пользователя:
 					<pre><code class="scala">
-Map("one" &gt; "first", "two" &gt; "second", "three" -&gt; "third")
+Map("one" -&gt; "first", "two" -&gt; "second", "three" -&gt; "third")
 
 m.get("one") // Some("first")
 
@@ -163,6 +163,17 @@ m.map(p ⇒ p._1.toUpperCase -&gt; p._2)
 				</section>
 
 				<section>
+					<p>Map - еще и частично определенная функция:
+					<pre><code class="scala">
+val m = Map("one" -&gt; 1, "two" -&gt; 2)
+
+List("one", "two", "three").collect(m)
+
+// List(1, 2)
+					</code></pre>
+				</section>
+
+				<section>
 					<p>Ключ - неизменяемый объект любого типа
 
 					<div class="fragment">
@@ -176,11 +187,11 @@ m.map(p ⇒ p._1.toUpperCase -&gt; p._2)
 				</section>
 
 				<section>
-					<p>Реализация - префиксное дерево с основанием 32
+					<p>Реализация в Scala 2.12 - <br>префиксное дерево с основанием 32
 
-					<p class="fragment">Похоже на вектор, только индексом выступает hashCode
+					<p class="fragment">Похоже на вектор, только индексом<br> выступает hashCode
 
-					<p class="fragment">Структура создается по мере необходимости, на каждом уровне могут быть
+					<p class="fragment">Структура разряженная, на каждом уровне могут быть
 					и данные, и ссылки на подуровни.
 				</section>
 
@@ -190,10 +201,10 @@ m.map(p ⇒ p._1.toUpperCase -&gt; p._2)
 				</section>
 
 				<section>
-					<p>Добавление и удаление - effectively constant,<br> как у Vector.
+					<p>Добавление и удаление - <br>effectively constant, как у Vector.
 
-					<p class="fragment">Поиск - effectively constant, если хеш-функция хорошая.<br>
-					Значения с одинаковым хеш-кодом хранятся в списке.
+					<p class="fragment">Поиск - effectively constant,<br> если хеш-функция хорошая.<br>
+					Значения с одинаковым<br> хеш-кодом хранятся в списке.
 				</section>
 
 				<section>
@@ -215,12 +226,12 @@ m.map(p ⇒ p._1.toUpperCase -&gt; p._2)
 				<section>
 					<p>Пример: Option.getOrElse
 					<pre><code class="scala">
-def getOrElse(opt: Option[Int], default: ⇒ Int): Int = {
-  opt match {
-    case None    ⇒ default // вычисляется прямо тут
-    case Some(v) ⇒ v  
-  }
-}
+// реализация из Scala 2.13.1
+@inline final def getOrElse[B &gt;: A](default: =&gt; B): B =
+    if (isEmpty) default else this.get
+
+// пример 
+Option(v).getOrElse(throw new RuntimeException("Oops!"))
 					</code></pre>
 				</section>
 
@@ -268,7 +279,7 @@ Duration.between(lazyCurrent, current)
 				<section>
 					<p>Превращаем call by name в lazy:
 					<pre><code class="scala">
-def repeat(n: Int, v : ⇒ Int) {
+def repeat(n: Int, v: =&gt; Int) {
   lazy val cached = v // вычисляется 0 или 1 раз
   
   List.fill(n)(cached)
@@ -292,27 +303,29 @@ def repeat(n: Int, v : ⇒ Int) {
 
   override def hashCode() = loId.hashCode
 }</code></pre>
-					<p><small>демо-код, с некоторыми языками будут проблемы</small>
+					<p><small>демо-код, с некоторыми "локалями" будут проблемы</small>
 				</section>
 
 				<section>
-					<h3>LazyList: ленивый список</h3>
+					<h3>Stream/LazyList: ленивый список</h3>
+					<p>Stream - старая реализация из 2.12 и ранее<br>
+					LazyList - 2.13+, исправлены некоторые недостатки
 				</section>
 
 				<section>
 					<p>Структура похожа на List
 					<pre><code class="scala">
-val s: Stream[Int] = 3 #:: 2 #:: 1 #:: Stream.empty
+val s: LazyList[Int] = 3 #:: 2 #:: 1 #:: LazyList.empty
 					</code></pre>
 				</section>
 
 				<section>
-					<p>Два вида ячеек:
-					TODO - отразить отличия от Stream
+					<p>У Stream два вида ячеек:
 					<ul>
 						<li>Stream.Cons[+A](hd: A, tl: =&gt; Stream[A])
 						<li>Stream.Empty
 					</ul>
+					<p>У LazyList аналогично, но реализация скрыта.
 				</section>
 
 				<section>
@@ -324,10 +337,12 @@ val s: Stream[Int] = 3 #:: 2 #:: 1 #:: Stream.empty
 					<p>Функции тоже работают лениво, например map:
 					<pre><code class="scala">
 var n: Int = 0
-val s: Stream[Int] = Stream.fill(100000) {
+val s: LazyList[Int] = LazyList.fill(100000) {
   n += 1
   Random.nextInt
 }
+
+println(n) // 0
 
 s.map(_ * 2).take(1).toVector
 
@@ -346,11 +361,12 @@ def map(s: Stream[Int], f: Int ⇒ Int): Stream[Int] = {
   }
 }
 					</code></pre>
+					<p><small>для LazyList чуть сложнее</small>
 				</section>
 
 				<section>
 					<p>Функции, обходящие весь список "форсируют" его.<br>
-					Например length или fold.
+					Например length или foldLeft.
 				</section>
 
 				<section>
@@ -362,30 +378,43 @@ def map(s: Stream[Int], f: Int ⇒ Int): Stream[Int] = {
 
 					<pre><code class="scala">
 import scala.math.BigInt
-lazy val fibs: Stream[BigInt] = BigInt(0) #::
-                                BigInt(1) #::
-                                fibs.zip(fibs.tail).map { n =&gt; 
-				  n._1 + n._2 
-				}
+
+val fibs: LazyList[BigInt] =
+  BigInt(0) #::
+    BigInt(1) #::
+      fibs.zip(fibs.tail).map { n =&gt;
+        n._1 + n._2
+      }
+
 
 fibs.take(5).toVector
 					</code></pre>
 				</section>
 
 				<section>
+					<p>Отличие Stream и LazyList:
+
+					<p class="fragment">Stream: первый элемент всегда вычислен,<br> LazyList - полностью ленивый.
+				</section>
+
+				<section>
 					<p>Применение:
 					<ul>
 						<li>Числа Фибоначчи :-)
-						<li>Алгоритмы поиска "в ширину"
+						<li>Рекурсивные алгоритмы, например<br> поиск "в ширину"
 						<li>наверное другие
 					</ul>
 				</section>
 
 				<section>
+					<p>Пример: <a href="https://kpacha.github.io/2014/10/26/solving-sudoku-puzzles-with-scala-streams.html" target=_blank">решение</a> Судоку.
+					<p>Пример: поиск кратчайшего решения "лабиринта".
+				</section>
+
+				<section>
 					<p>Основное практическое применение:
 					<ul>
-						<li>Оптимизация серий трансформаций коллекций
-						<li>Остановка вычислений когда получен результат
+						<li><s>Оптимизация серий трансформаций коллекций</s>
 					</ul>
 				</section>
 
@@ -395,7 +424,6 @@ fibs.take(5).toVector
 						<li>Плохо сочетаются с исключениями и побочными эффектами
 						<li>Задержки - иногда тоже побочный эффект
 						<li>Бесконечные последовательности легко случайно форсировать
-						<li>Первый элемент не ленивый
 					</ul>
 				</section>
 
