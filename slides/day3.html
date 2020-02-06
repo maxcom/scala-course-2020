@@ -466,7 +466,7 @@ fibs.take(5).toVector
 						<li>Описание в применении к текстам
 						<li>Описание как запрограммировать
 						<li>Пример расчета - подойдет для тестов
-						<li>Пример реализации на Scala
+						<li>Пример реализации на Scala (2.8!)
 					</ul>
 				</section>
 
@@ -489,6 +489,11 @@ fibs.take(5).toVector
 				</section> 
 
 				<section>
+					<p>В примере реализации есть проблемы с производительностью!
+					<p>Классификатор должен работать быстро,<br> максимум секунды.
+				</section>
+
+				<section>
 					<h3>View</h3>
 					TODO
 				</section>
@@ -496,6 +501,14 @@ fibs.take(5).toVector
 				<section>
 					<p>«Монада — всего лишь моноид из категории эндофункторов, что может быть проще?»
 					<p><small>(c) <a target="_blank" href="http://james-iry.blogspot.ru/2009/05/brief-incomplete-and-mostly-wrong.html">A Brief, Incomplete, and Mostly Wrong History of Programming Languages</a></small>
+				</section>
+
+				<section>
+					<p>К монадам можно придти двумя путями:
+					<ul>
+						<li>Используя их, они повсюду
+						<li>Через теорию категорий, это на следующей лекции
+					</ul>
 				</section>
 
 				<section>
@@ -509,11 +522,20 @@ fibs.take(5).toVector
 					<div class="fragment">
 					<p>Операции:
 					<ul>
-						<li>создания (pure; unit; return) - помещает значение в контекст
-						<li>map - применяет к значению функцию, возвращающую новое значение
-						<li>flatMap (bind) - применяет к значению функцию, возвращающую новые значение и контекст
+						<li>создания (обычно "pure") - помещает значение в контекст
+						<li>flatMap - применяет к значению функцию, возвращающую новые значение и контекст
+							("монадическая функция")
 					</ul>
 					</div>
+				</section>
+
+				<section>
+					Альтернативное определение:
+					<ul>
+						<li>создание (pure)
+						<li>map - применяет к значению функцию, возвращающую новые значение
+						<li>flatten - раскрывает вложенный контекст
+					</ul>
 				</section>
 
 				<section>
@@ -526,7 +548,7 @@ val opt = Option("username") // создание
 
 opt.flatMap(findUserId).flatMap(loadUserById)
 					</code></pre>
-					<p>Последовательное вычисление пока не встретится None
+					<p>Последовательное вычисление<br> пока не встретится None
 				</section>
 
 				<section>
@@ -537,9 +559,9 @@ opt.flatMap(findUserId).flatMap(loadUserById)
 					<p>for { ... } yield { ... }</p>
 
 					<p>Комбинирует flatMap и map<br>
-					(и еще filter и collect, но сейчас это не важно)
+					(и еще filter, но это не для монад)
 
-					<p class="fragment">for без yield использует forearch вместо последнего map
+					<p class="fragment">for без yield использует<br> forearch вместо последнего map
 				</section>
 
 				<section>
@@ -582,37 +604,6 @@ opt.flatMap(name =&gt;
 				</section>
 
 				<section>
-					<p>Еще про for - пример из домашнего задания
-
-					<pre><code class="scala">
-def forall(list: List[Int], f: Int ⇒ Boolean): Boolean = {
-  var result = true
-  for (elem &lt;- list if result)
-    result = f(elem)
-  result
-}					
-					</code></pre>
-				</section>
-
-				<section>
-					<p>Компилятор это преобразует в
-					<pre><code class="scala">
-def forall(list: List[Int], f: Int ⇒ Boolean): Boolean = {
-  var result = true
-  list.withFilter(_ =&gt; result).foreach(elem =&gt; result = f(elem))
-  result
-}
-					</code></pre>
-					<p>withFilter - это тот же фильтр,<br>только оптимизированный для for
-				</section>
-
-				<section>
-					<p>Данный код работает только потому,<br> что withFilter - ленивый.
-
-					<p class="fragment">Причем ленивый именно так, как хотел автор кода.
-				</section>
-
-				<section>
 					<p>Монада - абстракция цепочки связанных вычислений.
 
 					<p class="fragment">Монада контролирует выполнение этой цепочки.
@@ -625,7 +616,11 @@ def forall(list: List[Int], f: Int ⇒ Boolean): Boolean = {
 				<section>
 					<p>"Left Identity"
 
-					<p>pure(x).flatMap(f) == f(x)
+					<p>Для любой монадической функции f
+
+					<pre><code class="scala">
+pure(x).flatMap(f) == f(x)
+					</code></pre>
 
 					<p>применение функции к значению в монаде
 					эквивалентно применению функции к значению
@@ -634,7 +629,9 @@ def forall(list: List[Int], f: Int ⇒ Boolean): Boolean = {
 				<section>
 					<p>"Right Identity"
 
-					<p>m.flatMap(pure) == m
+					<pre><code class="scala">
+m.flatMap(pure) == m
+					</code></pre>
 
 					<p>применение функции создания не меняет монаду
 				</section>
@@ -642,11 +639,12 @@ def forall(list: List[Int], f: Int ⇒ Boolean): Boolean = {
 				<section>
 					<p>ассоциативность
 
-					<p>m.flatMap(f).flatMap(g) == <br>m.flatMap(x =&gt; f(x).flatMap(g))
+					<pre><code class="scala">
+m.flatMap(f).flatMap(g) == m.flatMap(x =&gt; f(x).flatMap(g))
+					</code></pre>
 
 					<p>уравнивает разные способы комбинации функций
 				</section>
-
 
 				<section>
 					<p>Try - тоже монада; вычисляется пока не возникнет
@@ -666,9 +664,7 @@ def forall(list: List[Int], f: Int ⇒ Boolean): Boolean = {
 				<section>
 					<p>Future - монада, выполняющая
 					вычисление в другом потоке.
-					<p class="fragment">Операция flatMap позволяет избежать
-					цепочек callback'ов.
-					<p class="fragment">Рассмотрим её устройство на 5-й встрече.
+					<p><small>Рассмотрим её устройство на 5-й встрече.</small>
 				</section>
 
 				<section>
