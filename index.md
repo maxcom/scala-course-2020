@@ -14,6 +14,7 @@ layout: default
   * Видео: [Работа со списками](https://youtu.be/1I1A5QUBy1k).
 * [Часть 3. Vector. Ленивые вычисления. LazyList и View. Монады](slides/day3.html) 7 февраля. [Версия для печати](slides/day3.html?print-pdf).
   * Видео: [Vector. Ленивые вычисления. LazyList](https://youtu.be/BZ72l3UYQeo).
+  * Видео: [Большое задание. View. Монады](https://youtu.be/Zye78QvxzIY).
 * Часть 4. Implicit значения и преобразования. Тайпклассы. Чтение и запись JSON в play-json. 14 февраля.
 * Часть 5. Базовые примитивы многопоточности. 21 февраля.
 * Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
