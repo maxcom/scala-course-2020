@@ -16,7 +16,8 @@ layout: default
   * Видео: [Vector. Ленивые вычисления. LazyList](https://youtu.be/BZ72l3UYQeo).
   * Видео: [Большое задание. View. Монады](https://youtu.be/Zye78QvxzIY).
 * [Часть 4. Implicit значения и преобразования. Тайпклассы. Чтение и запись JSON в play-json](slides/day4.html) 14 февраля. [Версия для печати](slides/day4.html?print-pdf).
-  * Видео: [Implicit значения. Тайпклассы. Моноиды.](https://youtu.be/0Q2j6yZ0okQ).
+  * Видео: [Implicit значения. Тайпклассы. Моноиды](https://youtu.be/0Q2j6yZ0okQ).
+  * Видео: [Применение тайпклассов на примере play-json](https://youtu.be/nEuVFosoxJE).
 * Часть 5. Базовые примитивы многопоточности. 21 февраля.
 * Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
 * Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
