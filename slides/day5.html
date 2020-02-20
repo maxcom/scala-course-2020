@@ -43,10 +43,6 @@
 				</section>
 
 				<section>
-					<p>Зачем мы говорили о play-json?
-				</section>
-
-				<section>
 					<p>"Домашнее" задание: развиваем классификатор
 					<ul>
 						<li>Правки по code review
@@ -173,6 +169,17 @@ def func(input: String): String
 				</section>
 
 				<section>
+					<p>Зачем?
+					<ul>
+						<li>Работа с большим числом сокетов<br>
+						<small>рассмотрим на 7-й лекции</small>
+						<li class=fragment>"Отзывчивость"
+						<li class=fragment>Отказоустойчивость<br>
+						<small>рассмотрим на лекции про Akka</small>
+					</ul>
+				</section>
+
+				<section>
 					<p>Асинхронная функция:
 					<pre><code class="scala">
 def func(input: String, onComplete: Try[String] =&gt; Unit): Unit
@@ -223,7 +230,7 @@ thread.start()
 				</section>
 
 				<section>
-					Проблема: хотим управлять потоками, не работать с Thread напрямую.
+					Проблема: хотим управление потоками, не хотим работать с Thread напрямую.
 				</section>
 
 				<section>
@@ -282,26 +289,22 @@ def run(): Unit = for (i &lt;- 0 to 10) println(i)
 				</section>
 
 				<section>
-					<h3>Синхронизация, блокировки и атомики.</h3>
-					Потокам нужно взаимодействовать: нужно координировать доступ
-					к разделяемым ресурсам - памяти, сокетам, файлам и т.п.
+					Следующая проблема: доступ к общим ресурсам.
 				</section>
 
 				<section>
-					Модель исполнения и памяти сложнее чем кажется:
+					<p>Например RandomAccessFile:
 					<ul>
-						<li>Процессор, компилятор и JVM меняют реальный порядок выполения
-						<li>Кеши процессоров сами не синхронизируются
-						<li>Запись long/double не атомарна на некоторых платформах
+						<li>read(...)
+						<li>seek(offset)
 					</ul>
-					Нужны специальные "барьеры" в точках взаимодействия.
+					<p>нельзя использовать из разных потоков
 				</section>
 
 				<section>
-					<p>Модель памяти Java сложна - подробности смотрите
-					<a target="_blank" href="https://shipilev.net/talks/jugru-Feb2014-jmm-pragmatics.pdf">Java Memory Model прагматика модели</a>
+					Операции над сложными объектами выполняются в много "ходов".
 				</section>
-				
+
 				<section>
 					Общие ресурсы требуют последовательного доступа - пока один поток
 					выполняется другие его ждут.
@@ -318,6 +321,7 @@ lock.synchronized {
   counter += 1
 }					
 					</code></pre>
+					<p class=fragment><small>Синхронизация на this - плохо</small>
 				</section>
 
 				<section>
@@ -346,6 +350,7 @@ def readData(): Vector[Int] = {
 					<h4>Deadlock</h4>
 					<p>Если брать lock'и в разном порядке в разных потоках можно получить взаимную
 					блокировку, из которой не выйти.
+					<p class=fragment>Пример: передача денег между счетами.
 				</section>
 
 				<section>
@@ -355,10 +360,29 @@ def readData(): Vector[Int] = {
 				</section>
 
 				<section>
+					Следующая проблема: оптимизации в JVM и процессоре.
+				</section>
+
+				<section>
+					<p>Модель исполнения и памяти сложнее чем кажется:
+					<ul>
+						<li>Процессор, компилятор и JVM меняют реальный порядок выполения
+						<li class=fragment>Кеши процессоров сами не синхронизируются на некоторых платформах
+						<li class=fragment>Запись long/double не атомарна на некоторых платформах
+					</ul>
+				</section>
+
+				<section>
+					<p>Модель памяти Java сложна - подробности смотрите
+					<a target="_blank" href="https://shipilev.net/talks/jugru-Feb2014-jmm-pragmatics.pdf">Java Memory Model прагматика модели</a>
+				</section>
+				
+				<section>
 					<h3>volatile</h3>
-					volatile переменная - только барьер, без блокировок.
+					volatile переменная - создает барьер, без блокировок.
 					<pre><code style="scala">
-@volatile var vcounter: Int = 0	
+@volatile 
+var vcounter: Int = 0	
 					</code></pre>
 					операции над ней "упорядочены", но защиты от "гонки потоков" нет
 				</section>
@@ -427,7 +451,7 @@ public final int incrementAndGet() {
 
 					<p class="fragment">Используем иммутабельные структуры и цепочки обработки.
 
-					<p class="fragment">Сегодня об этом поговорим, продолжим на 8-м занятии.
+					<p class="fragment">Сегодня об этом поговорим, продолжим на 10-м занятии.
 				</section>
 
 				<section>
@@ -436,6 +460,10 @@ public final int incrementAndGet() {
 					<p class="fragment">Изменяемое состояние приватное, работаем с ним из одного потока.
 
 					<p class="fragment">Это подход "Акторов", о которых поговорим на 7-м занятии.
+				</section>
+
+				<section>
+					<h2>Перерыв 5 минут</h2>
 				</section>
 
 				<section>
