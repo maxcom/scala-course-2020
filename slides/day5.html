@@ -468,16 +468,39 @@ public final int incrementAndGet() {
 
 				<section>
 					<h3>Future[T]</h3>
-					Future - результат отложенного вычисления.
+					<p>Future - результат отложенного вычисления.
+					<pre><code class="scala">
+def func(input: String, onComplete: Try[String] =&gt; Unit): Unit
+					</code></pre>
+					переходим к
+					<pre><code class="scala">
+val f = def func(input: String): Future[String]
+f.onComplete(...) // добавляем Callback
+					</code></pre>
 				</section>
+
 				<section>
-					Три базовых способа использования:
-					<ul>
-						<li>Подождать пока выполнится
-						<li>Опросить состояние
-						<li>Добавить callback
-					</ul>
+					Добавляем callback
+<pre><code class="scala">
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
+
+val f: Future[Int] = ???
+implicit val ec: ExecutionContext = ???
+
+f.onComplete { // выполняется в потоке ec
+  case Success(value) ⇒
+    println(value)
+  case Failure(ex) ⇒
+    println(s"Failed: ${ex.toString}")
+}
+</code></pre>
 				</section>
+
+				<section>
+					Еще есть более два механизма
+				</section>
+
 				<section>
 					Ожидание выполнения
 <pre><code class="scala">
@@ -509,23 +532,6 @@ f.value match {
 </code></pre>
 				</section>
 
-				<section>
-					Добавляем callback
-<pre><code class="scala">
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-
-val f: Future[Int] = ???
-implicit val ec: ExecutionContext = ???
-
-f.onComplete { // выполняется в потоке ec
-  case Success(value) ⇒
-    println(value)
-  case Failure(ex) ⇒
-    println(s"Failed: ${ex.toString}")
-}
-</code></pre>
-				</section>
 				
 				<section>
 					<h3>Promise[T]</h3>
@@ -538,33 +544,33 @@ f.onComplete { // выполняется в потоке ec
 
 				<section>
 <pre><code class="scala">
-val p: Promise[Int]
-val f: Future[Int] = p.future
+def func(input: String, onComplete: Try[String] =&gt; Unit): Unit
 
-f.onComplete {
-  case Success(value) ⇒
-    println(value)
-  case Failure(ex) ⇒
-    println(s"Failed: ${ex.toString}")
+def futureFunc(input: String): Future[String] = {
+  val p: Promise[String] = Promise()
+
+  func(input, p.complete)
+
+  p.future
 }
-
-p.success(10)				
 </code></pre>
 				</section>
 
 				<section>
-					Есть несколько полезных готовых функций:
-					<ul>
-						<li>Future.apply - запуск функции в отдельном потоке
-						<li>Future.successful - конструирование завершенной Future
-						<li>Future.failed - конструирование завершенной с ошибкой Future
-					</ul>
+					Запускаем синхронную функцию в отдельном потоке:
+<pre><code class="scala">def func(input: String): String = ???
+
+def futureFunc(input: String): Future[String] = Future {
+  func(input)
+}
+</code></pre>
+	
 				</section>
 
 				<section>
 					Реализация Future.apply:
 <pre><code class="scala">
-def run[T](f : ⇒ T)
+def run[T](f :=&gt; T)
           (implicit ec: ExecutionContext): Future[T] = {
   val p = Promise[T]()
 
@@ -576,24 +582,20 @@ def run[T](f : ⇒ T)
 }
 
 val f: Future[Int] = run { 2 * 2 }
+
 </code></pre>
 				</section>
 
 				<section>
-					Используем Future.apply:
-<pre><code class="scala">
-val f2: Future[Int] = Future {
-  2 * 2
-}
-</code></pre>
+					Иногда хотид поместить готовое значение в Future:
+					<ul>
+						<li>Future.successful - конструирование завершенной Future
+						<li>Future.failed - конструирование завершенной с ошибкой Future
+					</ul>
 				</section>
 
 				<section>
-					<h3>Трансформации Future</h3>
-
-					Работать с callback'ами плохо - когда их много код плохо читается и его тяжело отлаживать.
-
-					Есть более удобные способы.
+					Callback - не удобно.
 				</section>
 
 				<section>
@@ -607,27 +609,10 @@ val f2: Future[Int] = Future {
 				</section>
 
 				<section>
-					<p>Законы функтора
-
-					<p>композиция:
-<pre><code class="scala">
-fa.map(f).map(g) = fa.map(x =&gt; g(f(x)))
-</code></pre>
-					<p>identity
-<pre><code class="scala">
-fa.map(x =&gt; x) = fa
-</code></pre>
-				</section>
-
-				<section>
-					<p>Законы для программиста - это "контракт", который обязан
-					реализовать автор функтора.
-				</section>
-
-				<section>
 					Функция map преобразует значение в Future, например:
 <pre><code class="scala">
 val f3: Future[Int] = f.map(_ * 10)
+
 </code></pre>
 					функция будет выполнена тогда, когда<br>значение f будет вычислено
 				</section>
@@ -665,12 +650,8 @@ def userByEmail(email: String): Future[Int] = ???
 
 def ticketsByUser(user: Int): Future[Seq[Int]] = ???
 
-def userActive(user: Int): Boolean = 
-  Set(1, 42).contains(user)
-
 val count: Future[Int] = 
   userByEmail("user1@test")
-    .filter(userActive)
     .flatMap(ticketsByUser)
     .map(_.length)
 </code></pre>
@@ -681,7 +662,7 @@ val count: Future[Int] =
 					<p>Можно использовать for:
 <pre><code class="scala">
 val count: Future[Int] = for {
-  user &lt;- userByEmail("user1@test") if userActive(user)
+  user &lt;- userByEmail("user1@test")
   tickets &lt;- ticketsByUser(user)
 } yield {
   tickets.length
@@ -713,10 +694,7 @@ val res: Future[Result] = for {
 } yield Result(info, stats)
 
 </code></pre>
-				</section>
-
-				<section>
-					<p>Проблема - задержка вызова getUserStat
+					<p>проблема - задержка вызова getUserStat
 				</section>
 
 				<section>
@@ -733,17 +711,11 @@ val res: Future[Result] = for {
 				</section>
 
 				<section>
-					<p>Монада - абстракция цепочки вычислений; тут не подходит
+					<p>Монада - абстракция цепочки вычислений;<br> тут не подходит
 				</section>
 
 				<section>
 					<p>Вспомним аппликативный функтор
-				</section>
-
-				<section>
-					<p>Классическое определение - функция ap:
-					<img src="apply.png">
-					<p><small>источник: <a target="_blank" href="https://buzzdecafe.github.io/code/2014/10/26/functors-and-applicatives">Functors and Applicatives</a></small>
 				</section>
 
 				<section>
@@ -764,8 +736,15 @@ def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
 import cats.instances.future._
 import cats.syntax.all._
 
+(getUserInfo(user), getUserInfo(user)).tupled
+
 (getUserInfo(user), getUserInfo(user)).mapN(Result.apply)
 					</code></pre>
+				</section>
+
+				<section>
+					Нет Cats?<br>
+					Используем метод zip
 				</section>
 
 				<section>
@@ -786,27 +765,45 @@ val completed: Future[Seq[Int]] =
 					<p>Future.sequence может быть опасен - загружает очередь пула потоков
 					и может "перегрузить" process()
 				</section>
-<!--
-				<section>
-					<h3>Домашнее задание</h3>
-					Реализуем при помощи Promise
-					<ol>
-						<li>Функцию flatten для преобразования Future[Future[T]] =&gt; Future[T]
-						<li>Функцию sequence для преобразования Seq[Future[T]] =&gt; Future[Seq[T]]
-						<li>Пишем юнит-тесты на эти функции (не менее 3-х на каждую)</li>
-					</ol>
-				</section>
--->
-				<section>
-					<p>Дополнительно:<br> трансформер OptionT
-				</section>
 
 				<section>
-					<p>Мы можем использовать for для Future[T] и для Option[T]
+					<h3>Монадные трансформеры<sup>*</sup></h3>
+					<p><small>дополнительная часть, если успеем</small>
 				</section>
 
 				<section>
 					<p>Что делать с Future[Option[T]]?
+				</section>
+
+				<section>
+					<p>Пример map:
+					<pre><code class="scala">
+val maybeF = Future.successful(Some("value"))
+
+maybeF.map(_.map(_.length))
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Функторы можно собрать в один функтор:
+					<pre><code class="scala">
+import cats.data._
+import cats.implicits._
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+val maybeF: Future[Option[String]] = 
+  Future.successful(Some("value"))
+
+val nested = Nested(maybeF)
+
+nested.map(_.length).value // Future[Option[Int]]
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Универсального способа объединить две монады нет.
 				</section>
 
 				<section>
@@ -818,17 +815,13 @@ val completed: Future[Seq[Int]] =
 				</section>
 
 				<section>
-					<p>Универсального способа объединить две монады нет.
-				</section>
-
-				<section>
 					<p>Но можно сделать такой flatMap:
 					<pre><code class="scala">
-class FutureO[+A](val future: Future[Option[A]]) extends AnyVal {
+class FutureO[+A](val fut: Future[Option[A]]) extends AnyVal {
   def flatMap[B](f: A ⇒ FutureO[B])
                 (implicit ec: ExecutionContext): FutureO[B] = {
-    val newFuture = future.flatMap {
-      case Some(a) ⇒ f(a).future
+    val newFuture = fut.flatMap {
+      case Some(a) ⇒ f(a).fut
       case None    ⇒ Future.successful(None)
     }
     new FutureO(newFuture)
@@ -858,7 +851,7 @@ val greetingFO: Future[Option[String]] = ???
 val firstnameF: Future[String] = ???
 val lastnameO: Option[String] = ???
 
-val ot: OptionT[Future, String] = for {
+val ot = for { // OptionT[Future, String]
   g &lt;- OptionT(greetingFO)
   f &lt;- OptionT.liftF(firstnameF)
   l &lt;- OptionT.fromOption[Future](lastnameO)
