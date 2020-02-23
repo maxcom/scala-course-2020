@@ -21,6 +21,7 @@ layout: default
 * [Часть 5. Базовые примитивы многопоточности](slides/day5.html) 21 февраля. [Версия для печати](slides/day5.html?print-pdf).
   * Видео: [Домашнее задание](https://youtu.be/l7ky4d0PuR4).
   * Видео: [Многопоточность и асинхронность в JVM](https://youtu.be/gNaHDBK1nrQ).
+  * Видео: [Future и Promise](https://youtu.be/1G7oNfP-PZs).
 * Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
 * Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
 * Часть 8. Акторы Akka, часть 1. 13 марта.
