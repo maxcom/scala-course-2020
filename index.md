@@ -23,6 +23,7 @@ layout: default
   * Видео: [Многопоточность и асинхронность в JVM](https://youtu.be/gNaHDBK1nrQ).
   * Видео: [Future и Promise](https://youtu.be/1G7oNfP-PZs).
 * Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
+  * [Домашнее задание](slides/day6-task.html)
   * [Слайды](io-monad.pdf)
 * Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
 * Часть 8. Акторы Akka, часть 1. 13 марта.
