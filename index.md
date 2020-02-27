@@ -22,7 +22,7 @@ layout: default
   * Видео: [Домашнее задание](https://youtu.be/l7ky4d0PuR4).
   * Видео: [Многопоточность и асинхронность в JVM](https://youtu.be/gNaHDBK1nrQ).
   * Видео: [Future и Promise](https://youtu.be/1G7oNfP-PZs).
-* Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
+* Часть 6. IO-монада, ZIO и Cats Effects. Рассказывает Илья Слободянюк. 28 февраля.
   * [Домашнее задание](slides/day6-task.html)
   * [Слайды](io-monad.pdf)
 * Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
