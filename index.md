@@ -23,6 +23,7 @@ layout: default
   * Видео: [Многопоточность и асинхронность в JVM](https://youtu.be/gNaHDBK1nrQ).
   * Видео: [Future и Promise](https://youtu.be/1G7oNfP-PZs).
 * Часть 6. Cats Effects или ZIO. Рассказывает Илья Слободянюк. 28 февраля.
+  * [Слайды](io-monad.pdf)
 * Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
 * Часть 8. Акторы Akka, часть 1. 13 марта.
 * Часть 9. Акторы Akka, часть 2. 20 марта.
@@ -38,8 +39,16 @@ layout: default
 
 # Семинары
 
-1. Юнит тесты на Specs2 и ScalaCheck. 29 января.
-2. Измеряем скорость операций над коллекциями при помощи JMH. 5 февраля.
-3. Решаем задачи с использованием LazyList. 12 февраля.
+1. Юнит тесты на Specs2 и ScalaCheck. 29 января. 
+   * Демо проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar1).
+2. Измеряем скорость операций над коллекциями при помощи JMH. 5 февраля. 
+   * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar2).
+3. Решаем задачи с использованием LazyList. 12 февраля. 
+   * [Решето Эратосфена](https://ru.wikipedia.org/wiki/%D0%A0%D0%B5%D1%88%D0%B5%D1%82%D0%BE_%D0%AD%D1%80%D0%B0%D1%82%D0%BE%D1%81%D1%84%D0%B5%D0%BD%D0%B0).
+   * [Задача о ходе коня](https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%B4%D0%B0%D1%87%D0%B0_%D0%BE_%D1%85%D0%BE%D0%B4%D0%B5_%D0%BA%D0%BE%D0%BD%D1%8F)
 4. Практика по использованию play-json и обзор Circe. 19 февраля.
+   * Circe. [Слайды](CircePr.pdf)
+   * [Play JSON Derived Codecs](https://github.com/julienrf/play-json-derived-codecs)
 5. Практика по использованию Future/Promise. 26 февраля.
+   * Планировщик: [решение](https://gist.github.com/maxcom/fb991136b142eff29e24478a87538ccc).
+
