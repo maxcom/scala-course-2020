@@ -53,31 +53,35 @@
 				<section>
 					<p>Подключаем HTTP Client: build.sbt
 					<pre><code class="scala">
-libraryDependencies += ws
+libraryDependencies += "com.typesafe.play" %% 
+                        "play-ahc-ws-standalone" % "2.1.2"
+libraryDependencies += "com.typesafe.play" %% 
+                        "play-ws-standalone-json" % "2.1.2"
 					</code></pre>
 				</section>
 
 				<section>
-					<p>В контроллере:
-					<pre><code class="scala">
-import play.api.libs.ws.WSClient // не путаем с Java API!
+					<p>Инициализация
+					<pre><code class="scala">import akka.actor.ActorSystem
+import play.api.libs.ws.ahc.StandaloneAhcWSClient
+import scala.concurrent.ExecutionContext.Implicits._
+import play.api.libs.ws.DefaultBodyReadables._
 
-class DemoController @Inject()(cc: ControllerComponents, 
-  wsClient: WSClient)
-					</code></pre>
+object Demo extends App {
+  implicit val system: ActorSystem = ActorSystem()
+
+  val wsClient = StandaloneAhcWSClient()
+
+  wsClient.url("https://api.vk.com").get().map { response =&gt;
+    val body = response.body[String]
+    println(s"Got a response $body")
+  }
+}</code></pre>
 				</section>
 
 				<section>
-					<p>Делаем HTTP-запросы
-					<pre><code class="scala">
-wsClient
-  .url(url) // куда обращаемся
-  .get // выполняем метод, получаем Future
-  .map(_.body[JsValue]) // читаем JSON
-  .foreach(v ⇒ println(Json.prettyPrint(v)))
-					</code></pre>
-
-					<p>Подробнее в <a target="_blank" href="https://www.playframework.com/documentation/2.6.x/ScalaWS">документации</a>.
+					<p><a target="_blank" href="https://github.com/playframework/play-ws">Документация</a>.
+					<p><a target="_blank" href="https://www.playframework.com/documentation/2.8.x/ScalaWS">Документации Play</a>.
 				</section>
 
 				<section>
@@ -85,7 +89,7 @@ wsClient
 				</section>
 
 				<section>
-					<p>Нет логина на vk.com?<br>что-нибудь придумаем
+					<p>Нет логина на vk.com?<br>заведите
 				</section>
 
 				<section>
@@ -123,15 +127,7 @@ https://oauth.vk.com/authorize?client_id=NNNNN&amp;display=page&amp;redirect_uri
 				</section>
 
 				<section>
-					<p>/newsfeed - сервис оценки newsfeed
-
-					<ul>
-						<li>Загружаем ленту новостей (используем написаные ранее Reads)
-						<li>Для каждого уникального пользователя запрашиваем его свойства
-						<li>Классифицируем все тексты
-						<li>Отображаем ленту новостей: класс текста, текст с разметкой
-						<li>Показываем имя пользователя и его фото, число likes текста
-					</ul>
+					<p>Задача: вывести newsfeed в человеко-читаемом виде (не json!)
 				</section>
 
 				<section>
