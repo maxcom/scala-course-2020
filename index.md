@@ -25,6 +25,7 @@ layout: default
 * [Часть 6. IO-монада, ZIO и Cats Effects](io-monad.pdf). Рассказывает Илья Слободянюк. 28 февраля.
   * [Домашнее задание](slides/day6-task.html)
   * Видео: [Домашнее задание](https://youtu.be/r9qCfpsuqFg).
+  * Видео: [IO монада, ZIO и Cats Effect](https://youtu.be/EIaqf4Jsy8U).
 * Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
 * Часть 8. Акторы Akka, часть 1. 13 марта.
 * Часть 9. Акторы Akka, часть 2. 20 марта.
