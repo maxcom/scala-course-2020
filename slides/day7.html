@@ -32,29 +32,351 @@
 				<section>
 					<h3>План</h2>
 					<ol>
-						<li>Статус по практическому заданию
+						<li>Архитектура обработки запросов.
 						<li>HTTP протокол и REST.
+						<li>Статус по практическому заданию
 						<li>Play Framework: создаем приложение.
 						<li>Практическое задание: создаем сервис классификации.
-						<li>Архитектура обработки запросов.
 					</ol>
 				</section>
 
 				<section>
-					<h3>Статус по практическому заданию</h3>
+					Сегодня не будет новых<br> способов использования Implicit!
 				</section>
 
 				<section>
-					<p>План задания
-					<ol>
-						<li>Классификатор текстов
-						<li>Reads для vk.com (только работа с json!)
-						<li>Стемминг и диагностика<br>-------- мы находимся здесь -------
-						<li>Сервис категоризации
-						<li>Оценка сообщений соц. сетей - API vk.com
-						<li>Опрос новых записей и хранение состояния на диске
-					</ol>
+					<p>Основные источники асинхронности в JVM:
+					<ul>
+						<li class=fragment>Многопоточность
+						<li class=fragment>Сокеты (tcp)
+					</ul>
 				</section>
+
+				<section>
+					<h3>Архитектура обработки запросов</h3>
+				</section>
+
+				<section>
+					<p>Протоколы, в которых клиент
+					открывает tcp соединение с сервером и они
+					обмениваются запросами/сообщениями.
+
+					<p class="fragment">Это HTTP, SMTP, XMPP и многие другие.
+				</section>
+
+				<section>
+					<h4>Каждому клиенту по потоку</h4>
+					Самая простая модель: основной поток принимает соединения и передает
+					обработку "рабочим" потокам.
+				</section>
+
+				<section>
+					<pre><code class="scala">private val executor: Executor = 
+    Executors.newCachedThreadPool()
+val serverSocket: ServerSocket = new ServerSocket(2000)
+val greetings: Array[Byte] = 
+  "Hello, world!".getBytes(US_ASCII)
+
+while (true) { // упрощенный вариант сервера
+  val socket: Socket = serverSocket.accept()
+  executor.execute { () ⇒
+    // блокирующийся ввод-вывод
+    socket.getOutputStream.write(greetings)
+    socket.close()
+  }
+}</code></pre>
+				</section>
+
+				<section>
+					Проблемы кода из примера:
+					<ul>
+						<li>Нет обработки ошибок
+						<li>Нет ограничения числа потоков
+						<li>Нет способа остановки
+					</ul>
+				</section>
+				<section>
+					<h4>Проблемы подхода (1/3)</h4>
+
+					<p>"Пассивные" клиенты занимают потоки:
+					<ul>
+						<li>Когда держат соединения между запросами
+						<li>Когда читают ответ на своем медленном канале
+						<li>Когда сервер ждет ответ от другого сервиса
+					</ul>
+				</section>
+
+				<section>
+					<h4>Проблемы подхода (2/3)</h4>
+
+					<p>Не предполагает распараллеливания обработки одного запроса
+				</section>
+
+				<section>
+					<h4>Проблемы подхода (3/3)</h4>
+
+					<p>Трудности с обработкой таймаутов и fallback.
+				</section>
+
+				<section>
+					<h2>Все клиенты в одном потоке</h2>
+
+					<p>Можно ли обработать всех клиентов в одном потоке?
+
+					<p>Да, с использованием мультиплексированного ввода вывода.
+				</section>
+
+				<section>
+					<p>Такая архитектура показала свою эффективность.
+
+					<p>Например:
+
+					<ul>
+						<li>Веб-сервер NGINX
+						<li>СУБД Redis
+						<li>Сервер приложений node.js
+					</ul>
+				</section>
+
+				<section>
+					Плюсы такой схемы:
+					<ul>
+						<li>"Пассивные клиенты" почти не нагружают приложения
+						<li>Нет параллельности - нет недетерминизма и сложностей
+						<li>Меньше context switch - эффективнее для ОС и процессора
+					</ul>
+				</section>
+
+				<section>
+					<h2>Введение в Java NIO</h2>
+					<p>Java NIO - низкоуровневые API для ввода-вывода.
+
+					<p>"New IO" - "новый" API (2002 год).
+
+					<p>Дополняется в каждой новой версии JDK.
+				</section>
+
+				<section>
+					<p>Java IO - потоковые чтение/запись
+					<p>Java NIO - блочные чтение/запись
+				</section>
+
+				<section>
+					ByteBuffer - кошмар разработчика.
+				</section>
+
+				<section>
+					<p>Блочный I/O оптимальнее потокового, он избегает лишних копирований
+					и преобразований данных.
+
+					<p class="fragment">Нам NIO интересен тем, что только в нем есть неблокирующий ввод-вывод.
+				</section>
+
+				<section>
+					<h4>Неблокирующий ввод-вывод</h4>
+					
+					Специальный режим сокета.
+<pre><code class="scala">
+socketChannel.configureBlocking(false)
+
+</code></pre>
+				</section>
+				<section>
+					<p>Блокирущий read: читает сколько может;<br> если данных нет - ждет 
+
+					<p class="fragment">Неблокирующий read: мгновенно читает сколько может; нет данных - пустой результат
+				</section>
+
+				<section>
+					<p>Блокирующий write: пишет всё что передали; если клиент не успевает - ждет и продолжает
+					<p class="fragment">Неблокирующий write: мгновенно пишет сколько может; если клиент не готов - ничего не пишет
+				</section>
+
+				<section>
+<pre><code class="scala">
+  executor.execute { () ⇒
+    val buffer: ByteBuffer = ByteBuffer.wrap(greetings)
+
+    while (buffer.hasRemaining) { // busy wait - плохая идея
+      socket.write(buffer)
+    }
+
+    socket.close()
+  }
+</code></pre>
+				</section>
+
+				<section>
+					Постоянно опрашивать сокеты в ожидании готовности не эффективно.
+				</section>
+
+				<section>
+					Selector - мониторинг состояния сокетов.
+				</section>
+
+				<section>
+<pre><code class="scala">
+val selector: Selector = Selector.open()
+socket.configureBlocking(false)
+val key = socket.register(selector, SelectionKey.OP_WRITE)
+
+while (buffer.hasRemaining) {
+  selector.select() // блокируется
+  if (key.isWritable) {
+    socket.write(buffer)
+  }
+}
+</code></pre>
+				</section>
+
+				<section>
+					<p>Вернулись к блокировкам?
+				</section>
+
+				<section>
+					<h3>Event Loop - используем один Selector на всех клиентов</h3>
+				</section>
+
+				<section>
+<pre><code class="scala">val selector: Selector = Selector.open()
+
+// можно зарегистрировать много сокетов
+serverSocket.register(selector, SelectionKey.OP_ACCEPT, 
+  () -&gt; println("Got new connection"))
+
+while (true) {
+  selector.select()
+
+  val selectionKeys = selector.selectedKeys.asScala
+
+  selectionKeys.foreach { sk ⇒
+    sk.attachment().asInstanceOf[Runnable].run()
+  }
+}
+</code></pre>
+				</section>
+
+				<section>
+					<p>Итого:
+					<ul>
+						<li>"Реактивная логика", основанная на событиях
+						<li>Неограниченное количество клиентов на один поток
+					</ul>
+				</section>
+
+				<section>
+					<p>Сложности?
+
+					<p class="fragment">Запутанная логика чтения - нарезка потока от клиента
+					на произвольные блоки.
+
+					<p class="fragment">Запись только по готовности клиента
+
+					<p class="fragment">Запутанная машина состояний TLS
+				</section>
+
+				<section>
+					<p>Обычно не проблема - программист работает или с готовым сервером,
+					или с framework (netty, akka-io и т.п.)
+				</section>
+
+				<section>
+					Такой подход не сочитается с:
+					<ul>
+						<li>Долгими вычислениями на CPU
+						<li class="fragment">Блокирующимися вызовами (например JDBC)
+						<li class="fragment">Вызовами асинхронных API
+					</ul>
+				</section>
+
+				<section>
+					<h3>Комбинируем потоки и Event Loop</h3>
+					<p>(пример реализации)
+				</section>
+
+				<section>
+					<p>Раньше наши обработчики работали<br> прямо в нашем потоке.
+
+					<p>Сделаем их функциями <br> Unit ⇒ Future[Action]
+
+					<p><small>Action - кодирует следующую операцию над сокетом</small>
+				</section>
+
+				<section>
+					Вызов такой функции делается просто:
+<pre><code class="scala">selectionKeys.foreach { sk ⇒
+  sk.interestOps(0) // не ждем новых событий
+  sk.attachment().asInstanceOf[() ⇒ Future[Action]].apply()
+}
+</code></pre>
+					но как "вернуть" сокет обратно в работу?
+				</section>
+
+				<section>
+					<ul>
+					<li>Selector - не потокобезопасный (почти)
+					<li>да и он все время занят чем-то
+					</ul>
+				</section>
+
+				<section>
+					Создаем специальный Executor:
+<pre><code class="scala"> // неблокирующаяся очередь, построенная на CAS операциях
+val queue = new ConcurrentLinkedQueue[Runnable]
+val executor: Executor = task ⇒ queue.add(task)
+</code></pre>
+					очередь разбираем цикле обработки событий:
+<pre><code class="scala">var task: Runnable = _
+while ({ task = queue.poll(); task } != null) {
+  task.run()
+}
+</code></pre>
+				</section>
+
+				<section>
+					При добавлении задачи прерываем ожидание select()
+<pre><code class="scala">val reactorExecutor = ExecutionContext.fromExecutor { r ⇒
+  queue.add(r)
+  selector.wakeup()
+}
+</code></pre>
+				</section>
+
+				<section>
+<pre><code class="scala">selectionKeys.foreach { sk ⇒
+  sk.interestOps(0)
+  sk.attachment()
+    .asInstanceOf[() ⇒ Future[Action]]
+    .apply()
+    .onComplete(processAction)(reactorExecutor)
+}
+</code></pre>
+				</section>
+
+				<section>
+					<p>Итого мы получили:
+
+					<ul>
+						<li>event loop для эффективного ввода-вывода
+						<li>возможность использования thread pool вычислений
+						    и блокирующихся вызовов
+						<li>возможность использования асинхронных API
+					</ul>
+				</section>
+
+				<section>
+					<p>Все современные сервера на JVM реализуют комбинированный
+					подход.
+				</section>
+
+				<section>
+					<p>Похожий event-loop используется в клиентах к веб-сервисам
+					и к некоторым СУБД.
+
+					<p class="fragment">Функция выполнения запроса возвращает Future,
+					которая обрабатывается в event loop клиента.
+				</section>
+
 
 				<section>
 					<h3>HTTP протокол</h3>
@@ -81,7 +403,7 @@
 				</section>
 
 				<section>
-					<p>Кроме веб часто используется для взаимодействия
+					<p>HTTP используется для взаимодействия
 					сервисов между собой.
 				</section>
 
@@ -155,7 +477,7 @@ GET /scala-course-2020/slides/day7.html HTTP/1.1
 				<section>
 					<p>Заголовки запроса:
 					<ul>
-						<li>Описывают возможности и предпочтения клиента
+						<li>Возможности и предпочтения клиента
 						<li>Наличие и состав тела запроса
 						<li>Наличие данных в кеше
 						<li>Cookies
@@ -291,6 +613,27 @@ Set-Cookie: JSESSIONID=1485581EB69CB469B9E766D8DCEF4652; Path=/; Secure; HttpOnl
 
 				<section>
 					<p>Подробнее рассмотрим позже<br> на примере Play Framework
+				</section>
+
+				<section>
+					<h2>Перерыв 5 минут</h2>
+				</section>
+
+				<section>
+					<h3>Статус по практическому заданию</h3>
+				</section>
+
+				<section>
+					<p>План задания
+					<ol>
+						<li>Классификатор текстов
+						<li>Reads для vk.com (только reads! writes не нужно)
+						<li>Стемминг и диагностика
+						<li>Получаем сообщения API vk.com
+						<li>Сервис категоризации<br>-------- мы находимся здесь -------
+						<li>Опрос новых записей и хранение состояния на диске
+						<li>Realtime обновление
+					</ol>
 				</section>
 
 				<section>
@@ -591,324 +934,6 @@ def showForm() = Action {
 					<p>Пример - на сайте <a href="https://www.webjars.org/documentation#play2" target="_blank">webjars</a>
 
 					<p class="fragment">Использование - в документации на Bootstrap
-				</section>
-
-				<section>
-					<h3>Архитектура обработки запросов</h3>
-				</section>
-
-				<section>
-					<p>Рассмотрим протоколы, в которых клиент
-					открывает tcp соединение с сервером и они
-					обмениваются запросами/сообщениями.
-
-					<p class="fragment">Это HTTP, SMTP, XMPP и многие другие.
-				</section>
-
-				<section>
-					<h4>Каждому клиенту по потоку</h4>
-					Самая простая модель: основной поток принимает соединения и передает
-					обработку "рабочим" потокам.
-				</section>
-				<section>
-					<pre><code class="scala">private val executor: Executor = 
-    Executors.newCachedThreadPool()
-val serverSocket: ServerSocket = new ServerSocket(2000)
-val greetings: Array[Byte] = 
-  "Hello, world!".getBytes(US_ASCII)
-
-while (true) { // упрощенный вариант сервера
-  val socket: Socket = serverSocket.accept()
-  executor.execute { () ⇒
-    // блокирующийся ввод-вывод
-    socket.getOutputStream.write(greetings)
-    socket.close()
-  }
-}</code></pre>
-				</section>
-
-				<section>
-					Проблемы кода из примера:
-					<ul>
-						<li>Нет обработки ошибок
-						<li>Нет ограничения числа потоков
-						<li>Нет способа остановки
-					</ul>
-				</section>
-				<section>
-					<h4>Проблемы подхода (1/3)</h4>
-
-					<p>"Пассивные" клиенты занимают потоки:
-					<ul>
-						<li>Когда держат соединения между запросами
-						<li>Когда читают ответ на своем медленном канале
-						<li>Когда сервер ждет ответ от другого сервиса
-					</ul>
-				</section>
-
-				<section>
-					<h4>Проблемы подхода (2/3)</h4>
-
-					<p>Не предполагает распараллеливания обработки одного запроса
-				</section>
-
-				<section>
-					<h4>Проблемы подхода (3/3)</h4>
-
-					<p>Трудности с обработкой таймаутов и fallback.
-				</section>
-
-				<section>
-					<h2>Все клиенты в одном потоке</h2>
-
-					<p>Можно ли обработать всех клиентов в одном потоке?
-
-					<p>Да, с использованием мультиплексированного ввода вывода.
-				</section>
-
-				<section>
-					<p>Такая архитектура показала свою эффективность.
-
-					<p>Например:
-
-					<ul>
-						<li>Веб-сервер NGINX
-						<li>СУБД Redis
-						<li>Сервер приложений node.js
-					</ul>
-				</section>
-
-				<section>
-					Плюсы такой схемы:
-					<ul>
-						<li>"Пассивные клиенты" почти не нагружают приложения
-						<li>Нет параллельности - нет недетерминизма и сложностей
-						<li>Меньше context switch - эффективнее для ОС и процессора
-					</ul>
-				</section>
-
-				<section>
-					<h2>Введение в Java NIO</h2>
-					<p>Java NIO - низкоуровневые API для ввода-вывода.
-
-					<p>"New IO" - "новый" API (2002 год).
-
-					<p>Дополняется в каждой новой версии JDK.
-				</section>
-
-				<section>
-					<p>Java IO - потоковые чтение/запись
-					<p>Java NIO - блочные чтение/запись
-				</section>
-
-				<section>
-					<p>Блочный I/O оптимальнее потокового, он избегает лишних копирований
-					и преобразований данных.
-
-					<p class="fragment">Нам NIO интересен тем, что только в нем есть неблокирующий ввод-вывод.
-				</section>
-
-				<section>
-					<h4>Неблокирующий ввод-вывод</h4>
-					
-					Специальный режим сокета.
-<pre><code class="scala">
-socketChannel.configureBlocking(false)
-
-</code></pre>
-				</section>
-				<section>
-					<p>Блокирущий read: читает сколько может;<br> если данных нет - ждет 
-
-					<p class="fragment">Неблокирующий read: мгновенно читает сколько может; нет данных - пустой результат
-				</section>
-
-				<section>
-					<p>Блокирующий write: пишет всё что передали; если клиент не успевает - ждет и продолжает
-					<p class="fragment">Неблокирующий write: мгновенно пишет сколько может; если клиент не готов - ничего не пишет
-				</section>
-
-				<section>
-<pre><code class="scala">
-  executor.execute { () ⇒
-    val buffer: ByteBuffer = ByteBuffer.wrap(greetings)
-
-    while (buffer.hasRemaining) { // busy wait - плохая идея
-      socket.write(buffer)
-    }
-
-    socket.close()
-  }
-</code></pre>
-				</section>
-
-				<section>
-					Постоянно опрашивать сокеты в ожидании готовности не эффективно.
-				</section>
-
-				<section>
-					Selector - мониторинг состояния сокетов.
-				</section>
-
-				<section>
-<pre><code class="scala">
-val selector: Selector = Selector.open()
-socket.configureBlocking(false)
-val key = socket.register(selector, SelectionKey.OP_WRITE)
-
-while (buffer.hasRemaining) {
-  selector.select() // блокируется
-  if (key.isWritable) {
-    socket.write(buffer)
-  }
-}
-</code></pre>
-				</section>
-
-				<section>
-					<p>Вернулись к блокировкам?
-				</section>
-
-				<section>
-					<h3>Event Loop - используем один Selector на всех клиентов</h3>
-				</section>
-
-				<section>
-<pre><code class="scala">val selector: Selector = Selector.open()
-
-// можно зарегистрировать много сокетов
-serverSocket.register(selector, SelectionKey.OP_ACCEPT, 
-  () -&gt; println("Got new connection"))
-
-while (true) {
-  selector.select()
-
-  val selectionKeys = selector.selectedKeys.asScala
-
-  selectionKeys.foreach { sk ⇒
-    sk.attachment().asInstanceOf[Runnable].run()
-  }
-}
-</code></pre>
-				</section>
-
-				<section>
-					<p>Итого:
-					<ul>
-						<li>"Реактивная логика", основанная на событиях
-						<li>Неограниченное количество клиентов на один поток
-					</ul>
-				</section>
-
-				<section>
-					<p>Сложности?
-
-					<p class="fragment">Запутанная логика чтения - нарезка потока от клиента
-					на произвольные блоки.
-
-					<p class="fragment">Запись только по готовности клиента
-				</section>
-
-				<section>
-					<p>Обычно не проблема - программист работает или с готовым сервером,
-					или с framework (netty, akka-io и т.п.)
-				</section>
-
-				<section>
-					Такой подход не сочитается с:
-					<ul>
-						<li>Долгими вычислениями на CPU
-						<li class="fragment">Блокирующимися вызовами (например JDBC)
-						<li class="fragment">Вызовами асинхронных API
-					</ul>
-				</section>
-
-				<section>
-					<h3>Комбинируем потоки и Event Loop</h3>
-					<p>(пример реализации)
-				</section>
-
-				<section>
-					<p>Раньше наши обработчики работали<br> прямо в нашем потоке.
-
-					<p>Сделаем их функциями <br> Unit ⇒ Future[Action]
-
-					<p><small>Action - кодирует следующую операцию над сокетом</small>
-				</section>
-
-				<section>
-					Вызов такой функции делается просто:
-<pre><code class="scala">selectionKeys.foreach { sk ⇒
-  sk.interestOps(0) // не ждем новых событий
-  sk.attachment().asInstanceOf[() ⇒ Future[Action]].apply()
-}
-</code></pre>
-					но как "вернуть" сокет обратно в работу?
-				</section>
-
-				<section>
-					<ul>
-					<li>Selector - не потокобезопасный (почти)
-					<li>да и он все время занят чем-то
-					</ul>
-				</section>
-
-				<section>
-					Создаем специальный Executor:
-<pre><code class="scala"> // неблокирующаяся очередь, построенная на CAS операциях
-val queue = new ConcurrentLinkedQueue[Runnable]
-val executor: Executor = task ⇒ queue.add(task)
-</code></pre>
-					очередь разбираем цикле обработки событий:
-<pre><code class="scala">var task: Runnable = _
-while ({ task = queue.poll(); task } != null) {
-  task.run()
-}
-</code></pre>
-				</section>
-
-				<section>
-					При добавлении задачи прерываем ожидание select()
-<pre><code class="scala">val reactorExecutor = ExecutionContext.fromExecutor { r ⇒
-  queue.add(r)
-  selector.wakeup()
-}
-</code></pre>
-				</section>
-
-				<section>
-<pre><code class="scala">selectionKeys.foreach { sk ⇒
-  sk.interestOps(0)
-  sk.attachment()
-    .asInstanceOf[() ⇒ Future[Action]]
-    .apply()
-    .onComplete(processAction)(reactorExecutor)
-}
-</code></pre>
-				</section>
-
-				<section>
-					<p>Итого мы получили:
-
-					<ul>
-						<li>event loop для эффективного ввода-вывода
-						<li>возможность использования thread pool вычислений
-						    и блокирующихся вызовов
-						<li>возможность использования асинхронных API
-					</ul>
-				</section>
-
-				<section>
-					<p>Все современные сервера на JVM реализуют комбинированный
-					подход.
-				</section>
-
-				<section>
-					<p>Похожий event-loop используется в клиентах к веб-сервисам
-					и к некоторым СУБД.
-
-					<p class="fragment">Функция выполнения запроса возвращает Future,
-					которая обрабатывается в event loop клиента.
 				</section>
 
 				<section>
