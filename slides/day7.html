@@ -693,14 +693,14 @@ Set-Cookie: JSESSIONID=1485581EB69CB469B9E766D8DCEF4652; Path=/; Secure; HttpOnl
 
 				<section>
 					<p>Выбираем версию sbt: project/build.properties
-<pre><code class="scala">sbt.version=1.1.2
+<pre><code class="scala">sbt.version=1.3.8
 </code></pre>
 				</section>
 
 				<section>
 					<p>Создаем project/plugins.sbt
 <pre><code class="scala">
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.12")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.0")
 
 </code></pre>
 				</section>
@@ -770,6 +770,13 @@ class HelloWorld @Inject()(cc: ControllerComponents)
 				</section>
 
 				<section>
+					<p>Таблица роутинга запросов:<br>
+					src/main/resources/routes
+<pre><code class="scala">GET         /             controllers.HelloWorld.hello
+</code></pre>
+				</section>
+
+				<section>
 					<p>Action может быть асинхронным:
 <pre><code class="scala">
 class HelloWorld @Inject()(cc: ControllerComponents) 
@@ -790,13 +797,6 @@ class HelloWorld @Inject()(cc: ControllerComponents)
 					после появления первой версии.
 
 					<p class="fragment">И еще 3 года появился асинхронный ввод-вывод.
-				</section>
-
-				<section>
-					<p>Таблица роутинга запросов:<br>
-					src/main/resources/routes
-<pre><code class="scala">GET         /             controllers.HelloWorld.hello
-</code></pre>
 				</section>
 
 				<section>
@@ -881,7 +881,7 @@ DELETE /users/:login  controllers.Users.dropAdmin(login)
 				</section>
 
 				<section>
-					<p>Используем HTML шаблоны <a target="_blank" href="https://www.playframework.com/documentation/2.6.x/ScalaTemplates">Twirl</a>
+					<p>Используем HTML шаблоны <a target="_blank" href="https://www.playframework.com/documentation/2.8.x/ScalaTemplates">Twirl</a>
 				</section>
 
 				<section>
