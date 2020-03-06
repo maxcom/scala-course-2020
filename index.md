@@ -26,7 +26,7 @@ layout: default
   * [Домашнее задание](slides/day6-task.html)
   * Видео: [Домашнее задание](https://youtu.be/r9qCfpsuqFg).
   * Видео: [IO монада, ZIO и Cats Effect](https://youtu.be/EIaqf4Jsy8U).
-* Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
+* [Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений](slides/day7.html). 6 марта. [Версия для печати](slides/day7.html?print-pdf).
 * Часть 8. Акторы Akka, часть 1. 13 марта.
 * Часть 9. Акторы Akka, часть 2. 20 марта.
 * Часть 10. Akka Streams и реактивные потоки. 27 марта.
