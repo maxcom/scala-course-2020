@@ -57,3 +57,4 @@ layout: default
    * Планировщик: [решение](https://gist.github.com/maxcom/fb991136b142eff29e24478a87538ccc).
 6. Практика по реализации тайпклассов Cats. 4 марта.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-type-classes).
+7. Play Framework: сессии, аутентификация и обработка ошибок. 11 марта.
