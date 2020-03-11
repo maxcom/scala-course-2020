@@ -1,0 +1,4 @@
+GET         /                        controllers.HelloController.index()
+GET         /login/:user             controllers.HelloController.login(user: String)
+GET         /hello                   controllers.HelloController.hello()
+GET         /logout                  controllers.HelloController.logout()
