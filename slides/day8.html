@@ -332,7 +332,42 @@ object Main extends App {
 				</section>
 
 				<section>
-					SpawnProtocol
+					<h3>Дочерние акторы и SpawnProtocol</h3>
+					<ul>
+						<li>Актор может запустить дочерние акторы
+<pre><code class="scala">context.spawn(HelloWorld(), "greeter")</code></pre>
+						<li>На верхнем уровне - SpawnProtocol
+					</ul>
+				</section>
+
+				<section>
+					<p>SpawnProtocol - актор, порождающий акторы
+				</section>
+
+				<section>
+					<pre><code class="scala">
+implicit val system: ActorSystem[SpawnProtocol.Command] = 
+  ActorSystem(SpawnProtocol(), "root")
+
+val counterF: Future[ActorRef[Counter.Protocol]] =
+  system.ask(Spawn(Counter.behavior, "counter", Props.empty, _))
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+// для foreach
+implicit val ec: ExecutionContext = system.executionContext
+
+counterF.foreach { counter =&gt;
+  counter ! Counter.Incr(1)
+
+  val result: Future[Long] = counter ? Counter.Get
+  println(Await.result(result, 1.minutes))
+
+  system.terminate()
+}
+					</code></pre>
 				</section>
 
 				<section>
