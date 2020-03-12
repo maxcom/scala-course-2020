@@ -29,7 +29,7 @@ layout: default
 * [Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений](slides/day7.html). 6 марта. [Версия для печати](slides/day7.html?print-pdf).
   * Видео: [Java NIO и HTTP](https://youtu.be/Cpb8Z0MNI7g).
   * Видео: [REST и Play Framework](https://youtu.be/vxFpEG8NYUg).
-* Часть 8. Акторы Akka, часть 1. 13 марта.
+* [Часть 8. Акторы Akka, часть 1](slides/day8.html). 13 марта. [Версия для печати](slides/day8.html?print-pdf).
 * Часть 9. Акторы Akka, часть 2. 20 марта.
 * Часть 10. Akka Streams и реактивные потоки. 27 марта.
 * Часть 11. Возможно: работа с реляционными БД: scalikejdbc, slick и doobie. 3 апреля.
