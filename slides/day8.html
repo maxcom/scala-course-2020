@@ -385,6 +385,7 @@ counterF.foreach { counter =&gt;
 						<li>Не все акторы одинаковы</li>
 						<li>Акторы с долгими задачами могут занять все треды</li>
 						<li>Диалоги с большим количеством сообщений занимают диспетчер</li>
+						<li>В Akka 2.6 сама Akka использует internal dispatcher	
 					</ul>
 				</section>
 
@@ -399,146 +400,98 @@ counterF.foreach { counter =&gt;
 					<p class="fragment">Факт: «Титаник» утонул из-за плохого разделения на отсеки.</p>
 				</section>
 
+				<section>
+					<pre><code class="scala">
+context.spawn(yourBehavior, "BlockingDispatcher", 
+  DispatcherSelector.blocking())
+context.spawn(yourBehavior, "DispatcherFromConfig", 
+  DispatcherSelector.fromConfig("your-dispatcher"))
+					</code></pre>
+				</section>
+
+				<section>
+<pre><code>
+default-blocking-io-dispatcher {
+  type = "Dispatcher"
+  executor = "thread-pool-executor"
+  throughput = 1
+
+  thread-pool-executor {
+    fixed-pool-size = 16
+  }
+}
+</code></pre>
+				</section>
+
 
 				<section>
 					<h3>Работа с Future в акторе</h3>
-
-					<p>асинхронные API или ask на другие акторы
 				</section>
 
 				<section>
 					<p>Пример
-					<pre><code class="scala">class CacheActor(source: ⇒ Future[Int]) extends Actor {
-  private var value: Long = 0
+					<pre><code class="scala">
+object CacheActor {
+  trait Protocol
+  case class Get(replyto: ActorRef[String]) extends Protocol
+  case class RefreshAndGet(replyto: ActorRef[String]) extends Protocol
 
-  override def receive = {  
-    case Get  ⇒ 
-      sender() ! value
-    case RefreshAndGet ⇒
-      import context.dispatcher // нужен ExecutionContext
-
-      source.onComplete {
-        ??? // другой поток
-      }
-  }
+  def behavior(source: =&gt; Future[String]): Behavior[Protocol] = 
+    ???
 }
 					</code></pre>
 				</section>
 
 				<section>
-					<pre><code class="scala">
-override def receive = {  
-  case Get  ⇒
-    sender() ! value
-  case RefreshAndGet ⇒
-    source.onComplete {
-      case Success(v) ⇒ self ! Refresh(v)
-      case Failure(ex) ⇒ // handle failure  
+					<pre><code class="scala">def behavior(source: =&gt; Future[String]): Behavior[Protocol] = 
+  Behaviors.setup { ctx =&gt;
+    var current = "undefined"
+
+    Behaviors.receiveMessage {
+      case Get(replyto) =&gt;
+        replyto ! current
+        Behaviors.same
+      case RefreshAndGet(replyto) =&gt;
+        import ctx.executionContext
+      
+        source.onComplete(???)
+      
+        Behaviors.same
     }
-  case Refresh(v) ⇒
-    value = v
-  // нужно еще отправить результат 
-}
-					</code></pre>
+  }</code></pre>
 				</section>
 
+
 				<section>
-					<p>sender() ?
 					<pre><code class="scala">
-case RefreshAndGet ⇒
+case RefreshAndGet(replyto) =&gt;
+  import ctx.executionContext
+
   source.onComplete {
-    case Success(v) ⇒ 
-      self ! Refresh(v)
-      sender() ! v // ошибка - тут sender() не определен
-    case Failure(ex) ⇒ 
-  }
-case Refresh(v) ⇒
-  value = v
-  sender() ! v // ошибка - тут sender() это мы
-
-					</code></pre>
-				</section>
-
-				<section>
-					<p>Решение - сохраняем sender()
-
-					<pre><code class="scala">
-case RefreshAndGet ⇒
-  val replyTo = sender()
-  
-  source.onComplete {
-    case Success(v) ⇒
-      self ! Refresh(v)
-      replyTo ! v
-    case Failure(ex) ⇒
-  }
-					</code></pre>
-					<p><small>В Akka Typed нет sender(), его явно передают</small>
-				</section>
-
-				<section>
-					<p>pipeTo: посылаем результат актору
-					<pre><code class="scala">
-import akka.pattern.pipe
-
-source pipeTo self
-					</code></pre>
-					<p>Успех - отправляет результат,<br> ошибка - Status.Failure(ex)
-				</section>
-
-				<section>
-					<h3>Смена behavior</h3>
-
-					<p>Актор может переключать реализации receive:
-
-					<pre><code class="scala">
-private def waiting: Receive = {
-  case GetReady ⇒
-    context.become(ready)
-}
-
-private def ready: Receive = {
-  case TakeRest ⇒
-    context.become(waiting)
-}
-
-override def receive = waiting
-					</code></pre>
-				</section>
-
-				<section>
-					<p>Основные применения:
-					<ul>
-						<li>машины состояний
-						<li>"immutable" акторы
-					</ul>
-				</section>
-
-				<section>
-					<p>Пример: "immutable" counter	
-					<pre><code class="scala">
-class CounterActor extends Actor {
-  import CounterActor._
-  
-  private def counter(value: Long): Receive = {
-    case Get     ⇒ sender() ! value
-    case Incr(n) ⇒ context.become(counter(value + n))
-    
+    case Success(v) =&gt;
+      ctx.self ! Refresh(v)
+      replyto ! v
+    case Failure(ex) =&gt; // handle failure
   }
 
-  override def receive = counter(0)
-}
+  Behaviors.same
+case Refresh(value) =&gt;
+  current = value
+  Behaviors.same
 					</code></pre>
 				</section>
 
 				<section>
-					<p>Плюсы/минусы:
-
-					<ul>
-						<li class="fragment">Более функциональный подход; безопаснее
-						<li class="fragment">Подход "по умолчанию" в Akka Typed
-						<li class="fragment">Однако мутабельная версия часто эффективнее
-					</ul>
+					<p>pipeTo: посылаем результат себе самому
+					<pre><code class="scala">
+ctx.pipeToSelf(source) {
+  case Success(v) =&gt;
+    Refresh(v)
+  case Failure(ex) =&gt;
+    RefreshFailed(ex)
+}
+					</code></pre>
+					<p>Для ask есть "ctx.ask"
 				</section>
 
 				<section>
