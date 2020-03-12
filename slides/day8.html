@@ -30,7 +30,7 @@
 			<div class="slides">
 				<section>
 					<h3>Часть 8. Акторы Akka</h3>
-					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</small></a>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
@@ -423,6 +423,31 @@ default-blocking-io-dispatcher {
 </code></pre>
 				</section>
 
+                                <section>
+                                        <h2>Перерыв 5 минут</h2>
+                                </section>
+
+                                <section>
+                                        <h3>Статус по практическому заданию</h3>
+                                </section>
+
+                                <section>
+                                        <p>План задания
+                                        <ol>
+                                                <li>Классификатор текстов
+                                                <li>Reads для vk.com (только reads! writes не нужно)
+                                                <li>Стемминг и диагностика
+                                                <li>Получаем сообщения API vk.com
+                                                <li>Сервис категоризации<br>-------- мы находимся здесь -------
+                                                <li>Опрос новых записей
+						<li>Хранение состояния на диске
+                                                <li>Realtime обновление
+                                        </ol>
+                                </section>
+
+				<section>
+					TODO
+				</section>
 
 				<section>
 					<h3>Работа с Future в акторе</h3>
@@ -498,21 +523,53 @@ ctx.pipeToSelf(source) {
 					<h3>Stash</h3>
 
 					<p>Можно временно отложить сообщения:
-					<pre><code class="scala"> // extends Actor with Stash
-private def waiting: Receive = {
-  case Process(task) ⇒
-    stash()
-  case GetReady ⇒
-    context.become(ready)
-    unstashAll()
-}
+					<pre><code class="scala"> 
+def behavior(source: =&gt; Future[String]): Behavior[Protocol] = 
+  Behaviors.setup { ctx =&gt;
+    var current = "undefined"
 
-private def ready: Receive = {
-  case TakeRest ⇒
-    context.become(waiting)
-  case Process(task) ⇒
-    ???
-} </code></pre>
+    Behaviors.withStash(capacity = 1000) { stash =&gt;
+      def waiting: Behavior[Protocol] = ???
+      def working: Behavior[Protocol] = ???
+
+      working
+    }
+  }
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">def working: Behavior[Protocol] = 
+  Behaviors.receiveMessagePartial {
+    case Get(replyto) =&gt;
+      replyto ! current
+      Behaviors.same
+    case RefreshAndGet(replyto) =&gt;
+      ctx.pipeToSelf(source) {
+        case Success(v) =&gt;
+          Refresh(v)
+        case Failure(ex) =&gt;
+          RefreshFailed(ex)
+      }
+
+      waiting
+  }</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala"> 
+def waiting: Behavior[Protocol] = Behaviors.receiveMessage {
+  case Refresh(value) =&gt;
+    current = value
+    stash.unstashAll(working)
+  case RefreshFailed(ex) =&gt; // ...
+    stash.unstashAll(working)
+  case other =&gt;
+    // помним что stash может переполниться
+    stash.stash(other)
+    Behaviors.same
+}
+					</code></pre>
 				</section>
 
 				<section>
@@ -530,28 +587,6 @@ private def ready: Receive = {
 					<p>Вместо Stash иногда эффективнее<br> накапливать запросы
 					в state
 				</section>
-
-                                <section>
-                                        <h2>Перерыв 5 минут</h2>
-                                </section>
-
-                                <section>
-                                        <h3>Статус по практическому заданию</h3>
-                                </section>
-
-                                <section>
-                                        <p>План задания
-                                        <ol>
-                                                <li>Классификатор текстов
-                                                <li>Reads для vk.com (только reads! writes не нужно)
-                                                <li>Стемминг и диагностика
-                                                <li>Получаем сообщения API vk.com
-                                                <li>Сервис категоризации<br>-------- мы находимся здесь -------
-                                                <li>Опрос новых записей
-						<li>Хранение состояния на диске
-                                                <li>Realtime обновление
-                                        </ol>
-                                </section>
 
 				<section>
 					<h3>Таймеры и Deadline</h3>
@@ -571,6 +606,7 @@ val deadline: Deadline = 5 minutes fromNow
 					<ul>
 						<li>Использует монотонные часы
 						<li class="fragment">Используется в акторах для прерывания обработки запроса
+						<li class="fragment">Можно передавать внутри JVM, нельзя по сети и на диск</li>
 					</ul>
 				</section>
 
@@ -587,9 +623,7 @@ val timeout: Duration = deadline.timeLeft
 				<section>
 					<p>Таймеры
 					<pre><code class="scala">
-class CounterActor extends Actor with Timers {
-  import CounterActor._
-
+Behaviors.withTimers { timers =&gt;
   // key для уникальности таймера
   // msg - отправляемое сообщение
   timers.startSingleTimer(key = Tick, msg = Tick, 1 minute)
@@ -599,6 +633,8 @@ class CounterActor extends Actor with Timers {
   timers.cancel(Tick)
 
   timers.cancelAll()
+
+  ...
 					</code></pre>
 				</section>
 
@@ -617,7 +653,7 @@ class CounterActor extends Actor with Timers {
 
 					<p class="fragment">Защитный механизм для коротокоживущих акторов
 
-					<pre class="fragment"><code class="scala">context.setReceiveTimeout(5 minutes)
+					<pre class="fragment"><code class="scala">ctx.setReceiveTimeout(5 minutes, ReceiveTimeout)
 
 // отправляет ReceiveTimeout при отсутствии активности
 					</code></pre>
@@ -646,26 +682,36 @@ class CounterActor extends Actor with Timers {
 				<section>
 					<h3>Стратегии супервизора</h3>
 					<ul>
-						<li><strong>Restart</strong> — незаметный перезапуск.
-						<li class="fragment"><strong>Stop</strong> — остановка.
-						<li class="fragment"><strong>Escalate</strong> — обрушивает супервизор.
+						<li><strong>resume</strong> — игнорируем ошибку.
+						<li class="fragment"><strong>restart</strong> — незаметный перезапуск.
+						<li class="fragment"><strong>restartWithBackoff</strong> — перезапуск с задержкой
+						<li class="fragment"><strong>stop</strong> — остановка (по-умолчанию)
 					</ul>
 				</section>
 
 				<section>
+					<pre><code class="scala">
+def behavior(source: =&gt; Future[String]): Behavior[Protocol] =
+  Behaviors
+    .supervise[Protocol](...)
+    .onFailure[Throwable](SupervisorStrategy.restart)
+
+					</code></pre>
+				</section>
+
+				<section>
 					<p>Пример для ConnectionActor</p>
-					<pre>
-<code>
-override val supervisorStrategy =
-  OneForOneStrategy(maxNrOfRetries = 10, 
-   withinTimeRange = 1 minute) {
-    case _: ConnectionResetException        ⇒ Restart
-    case _: DatabaseWasDeletedException     ⇒ Stop
-    case _: SharedMemoryCorruptionException ⇒ Escalate
-  }
-						</code>
-					</pre>
-					<p class="fragment">Кроме быстрого перезапуска есть еще exponential back off</p>
+					<pre><code class=scala>
+Behaviors
+  .supervise[Protocol](...)
+  .onFailure[ConnectionResetException]
+    (SupervisorStrategy.restartWithBackoff(
+        minBackoff = 100 millis,
+        maxBackoff = 30 seconds,
+        randomFactor = 0.2))
+  .onFailure[DatabaseWasDeletedException]
+    (SupervisorStrategy.stop)
+						</code></pre>
 				</section>
 
 				<section>
@@ -678,14 +724,37 @@ override val supervisorStrategy =
 					<p>Ожидание остановки актора:</p>
 					<pre><code class="scala">
 context.watch(anotherActorRef)
+					</code></pre>
+					<p>Ловим сообщение Terminated(actorRef)
+					<pre><code class="scala">
+.receiveMessage {
+  ...
+}.receiveSignal {
+  case (ctx, Terminated(actor)) =&gt;
+    Behaviors.same
+}					
 	</code></pre>
-					<p>Либо ловим сообщение Terminated(actorRef), либо «death pact» — останавливаемся вместе.</p>
+				</section>
+
+				<section>
+					<p>Не обработали: работает «death pact» — 
+					останавливаемся вместе (DeathPactException).</p>
+				</section>
+
+				<section>
+					<p>В следующий раз:
+					<ul>
+						<li>Роутеры
+						<li>Гарантии доставки сообщений
+						<li>Стратегии обработки сбоев
+						<li>Back pressure
+					</ul>
 				</section>
 
 				<section>
 					<p>Напоминаю:
 					<ul>
-						<li>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</a>
+						<li>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</a>
 					</ul>
 				</section>
 			</div>
