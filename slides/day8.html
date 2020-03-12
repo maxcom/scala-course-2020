@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Акторы Akka</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/moon.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h3>Часть 8. Акторы Akka</h3>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</small></a>
+				</section>
+
+				<section>
+					<h2>План</h2>
+                                        <ol>
+        	                                <li>Актор — асинхронный объект.</li>
+						<li>Диспетчеры.</li>
+						<li>Future и акторы</li>
+						<li>Stash</li>
+						<li>Статус по практическому заданию
+						<li>Таймеры и deadline
+					 	<li>Обработка исключительных ситуаций.</li>
+						<li>Death watch и death pact
+					</ol>
+				</section>
+
+				<section>
+					<h2>Akka и акторы</h2>
+				</section>
+
+				<section>
+					<p>Модель акторов - 1973 год,<br>
+					использовалась как модель для описания параллельных систем.
+				</section>
+
+				<section>
+					<p>Позже стала применяться в качестве базы для
+					практических реализаций.
+				</section>
+
+				<section>
+					<p>Популярность модель получила благодаря Erlang:<br>
+					функциональному языку программирования и платформе,
+					разработанной Ericsson (1987 г.)
+				</section>
+
+				<section>
+					<p>Дальше будем говорить про реализацию модели
+					в библиотеке <a target="_blank" href="https://akka.io/">Akka</a>.
+				</section>
+
+				<section>
+					<p>Подключаем в проект: build.sbt
+
+					<pre><code class="scala">
+libraryDependencies += 
+  "com.typesafe.akka" %% "akka-actor" % "2.5.11"
+					</code></pre>
+
+					<p><small>в Play! зависимость уже и так есть</small>
+				</section>
+
+				<section>
+					<p>Актор — асинхронный объект</p>
+
+					<ul>
+						<li class="fragment">Приватное изменяемое состояние
+						<li class="fragment">Mailbox - входящая очередь сообщений
+						<li class="fragment">Логика обработки сообщений (behavior) 
+						<li class="fragment">и др. (об этом позже)
+					</ul>
+				</section>
+
+				<section>
+					<table>
+						<thead>
+							<tr>
+								<th></th><th>Объект</th> <th>Актор</th>
+							</tr>
+
+							<tr class="fragment">
+								<td>Вызов</td>
+								<td>counter.incr(n)</td>
+								<td>counter ! Incr(n)<br>
+								counter.tell(Incr(n))</td>
+
+							</tr>
+							<tr class="fragment">
+								<td>Запрос</td>
+								<td>counter.get()<br>⇒ Int</td>
+								<td>counter ? Get<br>
+								counter.ask(Get)<br>⇒ Future[Int]</td>
+							</tr>
+						</thead>
+					</table>
+				</section>
+
+				<section>
+					<p>В ООП логика моделируется взаимодействием объектов.
+
+					<p class="fragment">В модели акторов - взаимодействием акторов путем 
+					обмена сообщениями.
+				</section>
+
+				<section>
+					<p>В ООП методы можно вызывать из разных потоков.
+
+					<p class="fragment">Потокобезопасность?
+
+					<ul>
+						<li class="fragment">реализована при помощи блокировок, atomic и т.п.
+						<li class="fragment">отсутствует, т.е. перекладывается на пользователя
+					</ul>
+				</section>
+
+				<section>
+					<p>У актора обработка сообщений строго последовательна.
+
+					<p class="fragment">Акторы работают независимо в разных потоках.
+
+					<p class="fragment">Общение двух акторов последовательно<br> (очередь не
+					перемешивается).
+				</section>
+
+				<section>
+					<pre><code class="scala">class CounterActor extends Actor {
+  import CounterActor._
+
+  private var value: Long = 0 // state
+
+  override def receive = {            // behavior
+    case Incr(n) ⇒ value += n
+    case Get     ⇒ sender() ! value // или Status.Failure(ex)
+  }
+}
+
+object CounterActor {        // protocol
+  case class Incr(n: Long)
+  case object Get
+} </code></pre>
+				</section>
+				<section>
+					<pre><code class="scala">
+object Main extends App {
+  val system = ActorSystem("DemoSystem")
+  val counterActor: ActorRef = 
+    system.actorOf(Props[CounterActor], name = "counter")
+
+  counterActor ! Incr(1)
+  println(Await.result(counterActor ? Get, 1.minutes))
+}
+					</code></pre>
+
+					<p>ActorRef — идентификатор актора.
+				</section>
+
+				<section>
+					<p>В Akka Typed идентификатор актора ActorRef[Protocol]
+
+					<p>(этот API пока еще experimental)
+				</section>
+
+				<section>
+					<p>Приватное состояние - не только переменные.
+
+					<p class="fragment">Актор может скрывать за собой внешние сущности:
+					<ul>
+						<li class="fragment">RandomAccessFile (seek/read). 
+						<li class="fragment">данные во внешнем хранилище.
+						<li class="fragment">и др.
+					</ul>
+				</section>
+
+				<section>
+					<p>Разделяемое изменяемое состояние + параллелизм = проблемы<p>
+					<div class="fragment">
+					<p><s>Разделяемое</s> изменяемое состояние + параллелизм = 
+					«Share nothing» архитектура</p>
+					</div>
+				</section>
+
+				<section>
+					<p>Что можно отправлять актору?
+
+					<ul>
+						<li class="fragment">Неизменяемые данные
+						<li class="fragment">Ссылки на акторы - ActorRef
+					</ul>
+
+					<p class="fragment">Изменяемые объекты посылать нельзя!
+				</section>
+
+				<section>
+					<p>Можно ли посылать функции?
+
+					<ul>
+						<li class="fragment">Можно, потому что в функции тоже неизменяемые
+						<li class="fragment">Нельзя, если в замыкании мутабельные структуры.<br>
+						<span class="fragment">И еще это сомнительно с точки зрения модели.</span>
+					</ul>
+				</section>
+
+				<section>
+					<p>Можно ли посылать внешние объекты, вроде коннектов к БД, сокетов, т.п.?
+
+					<ul>
+						<li class="fragment">Нельзя, это нарушение модели
+						<li class="fragment">Можно, когда понимаем, что делаем и зачем.<br>
+						<span class="fragment">Так делают на "границе" между акторами и внешним миром.</span>
+					</ul>
+				</section>
+
+				<section>
+					<p>Пример актора: классификатор с обучением
+
+					<p class="fragment">Один актор на классификацию и обучение - просто, не эффективно
+					<p class="fragment">Актор для обучения, get запрос для модели - нужна immutable модель или функция копирования
+				</section>
+
+				<section>
+					<h3>Location transparency</h3>
+
+					<p>Акторы могут быть расположены в разных виртуальных машинах и на разных серверах.
+				</section>
+
+				<section>
+					<p>Взаимодействие акторов по сети не похоже на RPC (Remote Procedure Call).
+				</section>
+
+				<section>
+					<ul>
+						<li>Классический RPC — удаленные вызовы подобны локальным
+						<li class="fragment">Акторы — локальные «вызовы» подобны удаленным
+					</ul>
+				</section>
+
+				<section>
+					<p>Асинхронная логика больше похожа на взаимодействие по сети, чем
+					на цепочку вызовов в одном потоке.
+				</section>
+
+				<section>
+					<h3>Диспетчеры</h3>
+					<ul>
+						<li>Runtime для акторов</li>
+						<li>Работают поверх Executor'ов</li>
+						<li>Рабочие треды — разделяемый ресурс</li>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Диспетчеры — проблемы</h3>
+					<ul>
+						<li>Не все акторы одинаковы</li>
+						<li>Акторы с долгими задачами могут занять все треды</li>
+						<li>Диалоги с большим количеством сообщений занимают диспетчер</li>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Диспетчеры под задачи</h3>
+					<ul>
+						<li>Интерактивные задачи vs фоновая пакетная обработка.
+						<li class="fragment">Блокирующиеся вызовы (JDBC, файловый ввод-вывод, вычисления на CPU).
+						<li class="fragment">Свой «отсек» на каждую подсистему (bulkheading).
+						<li class="fragment">Своя JVM и свой сервер на каждую подсистему (Akka Remote / Cluster).
+					</ul>
+					<p class="fragment">Факт: «Титаник» утонул из-за плохого разделения на отсеки.</p>
+				</section>
+
+
+				<section>
+					<h3>Работа с Future в акторе</h3>
+
+					<p>асинхронные API или ask на другие акторы
+				</section>
+
+				<section>
+					<p>Пример
+					<pre><code class="scala">class CacheActor(source: ⇒ Future[Int]) extends Actor {
+  private var value: Long = 0
+
+  override def receive = {  
+    case Get  ⇒ 
+      sender() ! value
+    case RefreshAndGet ⇒
+      import context.dispatcher // нужен ExecutionContext
+
+      source.onComplete {
+        ??? // другой поток
+      }
+  }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+override def receive = {  
+  case Get  ⇒
+    sender() ! value
+  case RefreshAndGet ⇒
+    source.onComplete {
+      case Success(v) ⇒ self ! Refresh(v)
+      case Failure(ex) ⇒ // handle failure  
+    }
+  case Refresh(v) ⇒
+    value = v
+  // нужно еще отправить результат 
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>sender() ?
+					<pre><code class="scala">
+case RefreshAndGet ⇒
+  source.onComplete {
+    case Success(v) ⇒ 
+      self ! Refresh(v)
+      sender() ! v // ошибка - тут sender() не определен
+    case Failure(ex) ⇒ 
+  }
+case Refresh(v) ⇒
+  value = v
+  sender() ! v // ошибка - тут sender() это мы
+
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Решение - сохраняем sender()
+
+					<pre><code class="scala">
+case RefreshAndGet ⇒
+  val replyTo = sender()
+  
+  source.onComplete {
+    case Success(v) ⇒
+      self ! Refresh(v)
+      replyTo ! v
+    case Failure(ex) ⇒
+  }
+					</code></pre>
+					<p><small>В Akka Typed нет sender(), его явно передают</small>
+				</section>
+
+				<section>
+					<p>pipeTo: посылаем результат актору
+					<pre><code class="scala">
+import akka.pattern.pipe
+
+source pipeTo self
+					</code></pre>
+					<p>Успех - отправляет результат,<br> ошибка - Status.Failure(ex)
+				</section>
+
+				<section>
+					<h3>Смена behavior</h3>
+
+					<p>Актор может переключать реализации receive:
+
+					<pre><code class="scala">
+private def waiting: Receive = {
+  case GetReady ⇒
+    context.become(ready)
+}
+
+private def ready: Receive = {
+  case TakeRest ⇒
+    context.become(waiting)
+}
+
+override def receive = waiting
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Основные применения:
+					<ul>
+						<li>машины состояний
+						<li>"immutable" акторы
+					</ul>
+				</section>
+
+				<section>
+					<p>Пример: "immutable" counter	
+					<pre><code class="scala">
+class CounterActor extends Actor {
+  import CounterActor._
+  
+  private def counter(value: Long): Receive = {
+    case Get     ⇒ sender() ! value
+    case Incr(n) ⇒ context.become(counter(value + n))
+    
+  }
+
+  override def receive = counter(0)
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Плюсы/минусы:
+
+					<ul>
+						<li class="fragment">Более функциональный подход; безопаснее
+						<li class="fragment">Подход "по умолчанию" в Akka Typed
+						<li class="fragment">Однако мутабельная версия часто эффективнее
+					</ul>
+				</section>
+
+				<section>
+					<h3>Stash</h3>
+
+					<p>Можно временно отложить сообщения:
+					<pre><code class="scala"> // extends Actor with Stash
+private def waiting: Receive = {
+  case Process(task) ⇒
+    stash()
+  case GetReady ⇒
+    context.become(ready)
+    unstashAll()
+}
+
+private def ready: Receive = {
+  case TakeRest ⇒
+    context.become(waiting)
+  case Process(task) ⇒
+    ???
+} </code></pre>
+				</section>
+
+				<section>
+					<p>Пример: последовательная обработка и Future
+
+					<ul>
+						<li>Запрашиваем Future, переходим в waiting
+						<li class="fragment">В waiting кладем запросы в Stash
+						<li class="fragment">При вычислении Future - unstash и обратно в ready
+						<li class="fragment">Не забываем про ошибки, таймауты и пр.
+					</ul>
+				</section>
+
+				<section>
+					<p>Вместо Stash иногда эффективнее<br> накапливать запросы
+					в state
+				</section>
+
+                                <section>
+                                        <h2>Перерыв 5 минут</h2>
+                                </section>
+
+                                <section>
+                                        <h3>Статус по практическому заданию</h3>
+                                </section>
+
+                                <section>
+                                        <p>План задания
+                                        <ol>
+                                                <li>Классификатор текстов
+                                                <li>Reads для vk.com (только reads! writes не нужно)
+                                                <li>Стемминг и диагностика
+                                                <li>Получаем сообщения API vk.com
+                                                <li>Сервис категоризации<br>-------- мы находимся здесь -------
+                                                <li>Опрос новых записей
+						<li>Хранение состояния на диске
+                                                <li>Realtime обновление
+                                        </ol>
+                                </section>
+
+				<section>
+					<h3>Таймеры и Deadline</h3>
+				</section>
+
+				<section>
+					<p>Deadline - точка во времени
+
+					<pre><code class="scala">
+import scala.concurrent.duration._
+
+val deadline: Deadline = 5 minutes fromNow
+					</code></pre>
+				</section>
+
+				<section>
+					<ul>
+						<li>Использует монотонные часы
+						<li class="fragment">Используется в акторах для прерывания обработки запроса
+					</ul>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+deadline.hasTimeLeft() // проверки
+deadline.isOverdue()
+
+// величина таймаута
+val timeout: Duration = deadline.timeLeft
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Таймеры
+					<pre><code class="scala">
+class CounterActor extends Actor with Timers {
+  import CounterActor._
+
+  // key для уникальности таймера
+  // msg - отправляемое сообщение
+  timers.startSingleTimer(key = Tick, msg = Tick, 1 minute)
+
+  timers.startPeriodicTimer(key = Tick, msg = Tick, 1 minute)
+  
+  timers.cancel(Tick)
+
+  timers.cancelAll()
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Зачем?
+
+					<ul>
+						<li>Обработка таймаутов
+						<li>Периодическое обновление, очистка
+						<li>Печать статистики работы
+					</ul>
+				</section>
+
+				<section>
+					<p>Receive Timeout - реакция на отсутствие сообщений
+
+					<p class="fragment">Защитный механизм для коротокоживущих акторов
+
+					<pre class="fragment"><code class="scala">context.setReceiveTimeout(5 minutes)
+
+// отправляет ReceiveTimeout при отсутствии активности
+					</code></pre>
+
+					<p class="fragment"><small>Игнорирует сообщения расширяющие NotInfluenceReceiveTimeout</small>
+				</section>
+
+				<section>
+					<h3>Обработка исключительных ситуаций</h3>
+					<p>Виды ошибок в автомате с газировкой:
+					<ul>
+						<li>«Не достаточно средств», «закончилась кола» — пользователю
+						<li>NullPointerException, CocaColaJam — владельцу (супервизору)
+					</ul>
+				</section>
+
+				<section>
+					<h3>Пример: драйвер базы данных</h3>
+					<ul>
+						<li>Дублирование первичного ключа, нарушение foreign key — пользователю драйвера</li>
+						<li>«БД перезагружается», «Соединение разорвано» — супервизору</li>
+					</ul>
+					<p>Иерархия: DriverActor → ConnectionActor → TransactionActor
+				</section>
+
+				<section>
+					<h3>Стратегии супервизора</h3>
+					<ul>
+						<li><strong>Restart</strong> — незаметный перезапуск.
+						<li class="fragment"><strong>Stop</strong> — остановка.
+						<li class="fragment"><strong>Escalate</strong> — обрушивает супервизор.
+					</ul>
+				</section>
+
+				<section>
+					<p>Пример для ConnectionActor</p>
+					<pre>
+<code>
+override val supervisorStrategy =
+  OneForOneStrategy(maxNrOfRetries = 10, 
+   withinTimeRange = 1 minute) {
+    case _: ConnectionResetException        ⇒ Restart
+    case _: DatabaseWasDeletedException     ⇒ Stop
+    case _: SharedMemoryCorruptionException ⇒ Escalate
+  }
+						</code>
+					</pre>
+					<p class="fragment">Кроме быстрого перезапуска есть еще exponential back off</p>
+				</section>
+
+				<section>
+					<h3>Death pact &amp; death watch</h3>
+					<p>Пример: один запрос – три иерархии.
+					<img src="service.svg">
+				</section>
+
+				<section>
+					<p>Ожидание остановки актора:</p>
+					<pre><code class="scala">
+context.watch(anotherActorRef)
+	</code></pre>
+					<p>Либо ловим сообщение Terminated(actorRef), либо «death pact» — останавливаемся вместе.</p>
+				</section>
+
+				<section>
+					<p>Напоминаю:
+					<ul>
+						<li>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</a>
+					</ul>
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+                                controls: true,
+                                progress: true,
+                                history: true,
+                                center: true,
+
+                                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+
+	</body>
+</html>
