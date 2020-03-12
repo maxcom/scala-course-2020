@@ -48,6 +48,12 @@
 				</section>
 
 				<section>
+					<p>Пересекли экватор - половина курса пройдена
+
+					<img src="Капитан_Врунгель.jpg">
+				</section>
+
+				<section>
 					<h2>Akka и акторы</h2>
 				</section>
 
@@ -77,10 +83,26 @@
 
 					<pre><code class="scala">
 libraryDependencies += 
-  "com.typesafe.akka" %% "akka-actor" % "2.5.11"
+  "com.typesafe.akka" %% "akka-actor" % "2.6.3"
 					</code></pre>
 
 					<p><small>в Play! зависимость уже и так есть</small>
+				</section>
+
+				<section>
+					<p>Два варианта API:
+					<ul>
+						<li>«Классический» - копия Erlang, без типов
+						<li class=fragment>«Typed» - типы и много улучшений
+					</ul>
+				</section>
+
+				<section>
+					<p>Разделяемое изменяемое состояние + параллелизм = проблемы<p>
+					<div class="fragment">
+					<p><s>Разделяемое</s> изменяемое состояние + параллелизм = 
+					«Share nothing» архитектура</p>
+					</div>
 				</section>
 
 				<section>
@@ -192,14 +214,6 @@ object Main extends App {
 						<li class="fragment">данные во внешнем хранилище.
 						<li class="fragment">и др.
 					</ul>
-				</section>
-
-				<section>
-					<p>Разделяемое изменяемое состояние + параллелизм = проблемы<p>
-					<div class="fragment">
-					<p><s>Разделяемое</s> изменяемое состояние + параллелизм = 
-					«Share nothing» архитектура</p>
-					</div>
 				</section>
 
 				<section>
