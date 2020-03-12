@@ -83,7 +83,9 @@
 
 					<pre><code class="scala">
 libraryDependencies += 
-  "com.typesafe.akka" %% "akka-actor" % "2.6.3"
+  "com.typesafe.akka" %% "akka-actor-typed" % "2.6.3"
+libraryDependencies += // или другой backend Slf4j
+  "ch.qos.logback" % "logback-classic" % "1.2.3"
 					</code></pre>
 
 					<p><small>в Play! зависимость уже и так есть</small>
@@ -95,6 +97,15 @@ libraryDependencies +=
 						<li>«Классический» - копия Erlang, без типов
 						<li class=fragment>«Typed» - типы и много улучшений
 					</ul>
+				</section>
+
+				<section>
+					<p>Правильные import'ы:
+
+					<pre><code class="scala">
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior}
+					</code></pre>
 				</section>
 
 				<section>
@@ -168,41 +179,85 @@ libraryDependencies +=
 				</section>
 
 				<section>
-					<pre><code class="scala">class CounterActor extends Actor {
-  import CounterActor._
+					<p>Пример: актор счетчика
+					<pre><code class="scala">
+object Counter {
+  trait Protocol
+  case class Incr(n: Long) extends Protocol
+  case class Get(replyto: ActorRef[Long]) extends Protocol
 
-  private var value: Long = 0 // state
+  def behavior: Behavior[Protocol] = ???
+}					
+					</code></pre>
+				</section>
 
-  override def receive = {            // behavior
-    case Incr(n) ⇒ value += n
-    case Get     ⇒ sender() ! value // или Status.Failure(ex)
+				<section>
+					<p>Актор с изменяемым состоянием
+					<pre><code class="scala">
+def behavior: Behavior[Protocol] = Behaviors.setup { ctx =&gt;
+  var value: Long = 0
+
+  Behaviors.receiveMessage {
+    case Incr(n) =&gt;
+      value += n
+      Behaviors.same
+    case Get(replyto) =&gt;
+      replyto ! value
+      Behaviors.same
   }
 }
-
-object CounterActor {        // protocol
-  case class Incr(n: Long)
-  case object Get
-} </code></pre>
+					</code></pre>
 				</section>
+
+				<section>
+					<p>"Immutable" актор
+					<pre><code class="scala">
+private def counter(value: Long): Behavior[Protocol] = 
+  Behaviors.receiveMessage {
+    case Incr(n) =&gt;
+      counter(value + n)
+    case Get(replyto) =&gt;
+      replyto ! value
+      Behaviors.same
+}
+
+def behavior: Behavior[Protocol] = counter(0)
+					</code></pre>
+				</section>
+	
+
 				<section>
 					<pre><code class="scala">
 object Main extends App {
-  val system = ActorSystem("DemoSystem")
-  val counterActor: ActorRef = 
-    system.actorOf(Props[CounterActor], name = "counter")
+  val system: ActorSystem[Counter.Protocol] = // корневой актор
+    ActorSystem(Counter.behavior, "counter")
 
-  counterActor ! Incr(1)
-  println(Await.result(counterActor ? Get, 1.minutes))
+  system ! Counter.Incr(1)
+
+  system.terminate()
 }
 					</code></pre>
-
-					<p>ActorRef — идентификатор актора.
 				</section>
 
 				<section>
-					<p>В Akka Typed идентификатор актора ActorRef[Protocol]
+					<p>Используем Ask
+					<pre><code class="scala">
+import akka.actor.typed.scaladsl.AskPattern._
 
-					<p>(этот API пока еще experimental)
+object Main extends App {
+  implicit val system: ActorSystem[Counter.Protocol] = ???
+// ^^^^^^
+
+  system ! Counter.Incr(1)
+
+  implicit val timeout: Timeout = 10.seconds
+
+  val result: Future[Long] = system ? Counter.Get
+  println(Await.result(result, 1.minutes))
+
+  system.terminate()
+}
+					</code></pre>
 				</section>
 
 				<section>
@@ -274,6 +329,10 @@ object Main extends App {
 				<section>
 					<p>Асинхронная логика больше похожа на взаимодействие по сети, чем
 					на цепочку вызовов в одном потоке.
+				</section>
+
+				<section>
+					SpawnProtocol
 				</section>
 
 				<section>
