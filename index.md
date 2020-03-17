@@ -29,12 +29,11 @@ layout: default
 * [Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений](slides/day7.html). 6 марта. [Версия для печати](slides/day7.html?print-pdf).
   * Видео: [Java NIO и HTTP](https://youtu.be/Cpb8Z0MNI7g).
   * Видео: [REST и Play Framework](https://youtu.be/vxFpEG8NYUg).
-* [Часть 8. Акторы Akka, часть 1](slides/day8.html). 13 марта. [Версия для печати](slides/day8.html?print-pdf).
-* Часть 9. Акторы Akka, часть 2. 20 марта.
-* Часть 10. Akka Streams и реактивные потоки. 27 марта.
-* Часть 11. Возможно: работа с реляционными БД: scalikejdbc, slick и doobie. 3 апреля.
-* Часть 12. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
-* Часть 13. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
+* [Часть 8. Акторы Akka, часть 1](slides/day8.html). 20 марта. [Версия для печати](slides/day8.html?print-pdf).
+* Часть 9. Акторы Akka, часть 2. 27 марта.
+* Часть 10. Akka Streams и реактивные потоки. 3 апреля.
+* Часть 11. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
+* Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
 * Подведение итогов. 24 апреля.
 
 Внимание! Для распечатки слайдов или сохранения в PDF используейте ссылки "версии для печати" и браузер Chrome/Chromium.
@@ -59,3 +58,4 @@ layout: default
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-type-classes).
 7. Play Framework: сессии, аутентификация и обработка ошибок. 11 марта.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-play-auth).
+8. Работа с реляционными БД: scalikejdbc, slick и doobie. 18 марта.
