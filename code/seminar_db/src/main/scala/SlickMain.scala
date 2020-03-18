@@ -1,9 +1,11 @@
 import slick.jdbc.H2Profile.api._
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 object SlickMain extends App {
-  val db = Database.forConfig("h2slick")
+  val db = Database.forURL("jdbc:h2:mem:test1;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
 
   case class Person(id: Option[Int], name: String, age: Int, salary: Int, deptId: Int)
   class PersonTable(tag: Tag) extends Table[Person](tag, "person") {
@@ -29,26 +31,12 @@ object SlickMain extends App {
   val department = TableQuery[DepartmentTable]
 
   val setup = DBIO.seq(
-    // Create the tables, including primary and foreign keys
     (persons.schema ++ department.schema).create,
+    persons += Person(Some(101), "Example", 10, 20, 123),
 
-    // Insert some suppliers
-    persons += Person(Some(101), "Acme, Inc.",      "99 Market Street", "Groundsville", "CA", "95199"),
-
-    // Equivalent SQL code:
-    // insert into SUPPLIERS(SUP_ID, SUP_NAME, STREET, CITY, STATE, ZIP) values (?,?,?,?,?,?)
-
-    // Insert some coffees (using JDBC's batch insert feature, if supported by the DB)
-    coffees ++= Seq(
-      ("Colombian",         101, 7.99, 0, 0),
-      ("French_Roast",       49, 8.99, 0, 0),
-      ("Espresso",          150, 9.99, 0, 0),
-      ("Colombian_Decaf",   101, 8.99, 0, 0),
-      ("French_Roast_Decaf", 49, 9.99, 0, 0)
-    )
-    // Equivalent SQL code:
-    // insert into COFFEES(COF_NAME, SUP_ID, PRICE, SALES, TOTAL) values (?,?,?,?,?)
   )
+
+  Await.result(db.run(setup), 2 minutes)
 
   db.close()
 
