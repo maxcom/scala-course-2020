@@ -59,3 +59,4 @@ layout: default
 7. Play Framework: сессии, аутентификация и обработка ошибок. 11 марта.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-play-auth).
 8. Работа с реляционными БД: scalikejdbc, slick и doobie. 18 марта.
+   * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar_db).
