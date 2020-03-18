@@ -29,8 +29,7 @@ object DoobieMain extends IOApp {
       for {
         n <- sql"select 42".query[Int].unique.transact(xa)
         _ <- IO(println(n))
-        a <- createTables.transact(xa)
-        _ <- IO(println(a))
+        _ <- createTables.transact(xa)
       } yield ExitCode.Success
 
     }
@@ -55,10 +54,8 @@ object DoobieMain extends IOApp {
         """.update.run
     for {
       _ <- createPerson
-      _ <- sql"insert into person(name, age, salary) values ('abc', 10, 20)".update.run
       _ <- createDepartment
-      a <- sql"select age from person".query[Int].unique
-    } yield a
+    } yield ()
   }
 
 }
