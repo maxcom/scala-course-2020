@@ -26,13 +26,14 @@ layout: default
   * [Домашнее задание](slides/day6-task.html)
   * Видео: [Домашнее задание](https://youtu.be/r9qCfpsuqFg).
   * Видео: [IO монада, ZIO и Cats Effect](https://youtu.be/EIaqf4Jsy8U).
-* Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений. 6 марта.
-* Часть 8. Акторы Akka, часть 1. 13 марта.
-* Часть 9. Акторы Akka, часть 2. 20 марта.
-* Часть 10. Akka Streams и реактивные потоки. 27 марта.
-* Часть 11. Возможно: работа с реляционными БД: scalikejdbc, slick и doobie. 3 апреля.
-* Часть 12. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
-* Часть 13. Возможно: вариантность типов, type alias, self types, и др. Линзы. 17 апреля.
+* [Часть 7. HTTP Протокол. Play Framework. Архитектура высоконагруженных приложений](slides/day7.html). 6 марта. [Версия для печати](slides/day7.html?print-pdf).
+  * Видео: [Java NIO и HTTP](https://youtu.be/Cpb8Z0MNI7g).
+  * Видео: [REST и Play Framework](https://youtu.be/vxFpEG8NYUg).
+* [Часть 8. Акторы Akka, часть 1](slides/day8.html). 20 марта. [Версия для печати](slides/day8.html?print-pdf).
+* Часть 9. Акторы Akka, часть 2. 27 марта.
+* Часть 10. Akka Streams и реактивные потоки. 3 апреля.
+* Часть 11. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
+* Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
 * Подведение итогов. 24 апреля.
 
 Внимание! Для распечатки слайдов или сохранения в PDF используейте ссылки "версии для печати" и браузер Chrome/Chromium.
@@ -54,3 +55,7 @@ layout: default
 5. Практика по использованию Future/Promise. 26 февраля.
    * Планировщик: [решение](https://gist.github.com/maxcom/fb991136b142eff29e24478a87538ccc).
 6. Практика по реализации тайпклассов Cats. 4 марта.
+   * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-type-classes).
+7. Play Framework: сессии, аутентификация и обработка ошибок. 11 марта.
+   * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-play-auth).
+8. Работа с реляционными БД: scalikejdbc, slick и doobie. 18 марта.
