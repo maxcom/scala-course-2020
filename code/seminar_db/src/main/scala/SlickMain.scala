@@ -1,3 +1,4 @@
+/*
 import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Await
@@ -40,4 +41,4 @@ object SlickMain extends App {
 
   db.close()
 
-}
+}*/

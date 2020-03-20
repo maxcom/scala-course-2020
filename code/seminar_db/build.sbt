@@ -1,5 +1,7 @@
 name := "Databases"
 
+resolvers += DefaultMavenRepository
+
 version := "0.1"
 
 scalaVersion := "2.12.7"
@@ -21,4 +23,13 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-nop" % "1.7.26",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.1"
 
+)
+
+
+
+libraryDependencies ++= Seq(
+  "org.scalikejdbc" %% "scalikejdbc" % "3.4.1",
+  "org.scalikejdbc" %% "scalikejdbc-config"  % "3.4.1",  // Typesafe Config - application.conf
+  "com.h2database"  %  "h2"                % "1.4.200",
+  "ch.qos.logback"  %  "logback-classic"   % "1.2.3"  // slf4j implementation
 )
