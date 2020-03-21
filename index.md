@@ -30,6 +30,7 @@ layout: default
   * Видео: [Java NIO и HTTP](https://youtu.be/Cpb8Z0MNI7g).
   * Видео: [REST и Play Framework](https://youtu.be/vxFpEG8NYUg).
 * [Часть 8. Акторы Akka, часть 1](slides/day8.html). 20 марта. [Версия для печати](slides/day8.html?print-pdf).
+  * Видео: [Домашнее задание](https://youtu.be/T20YdPBPwgc).
 * Часть 9. Акторы Akka, часть 2. 27 марта.
 * Часть 10. Akka Streams и реактивные потоки. 3 апреля.
 * Часть 11. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
