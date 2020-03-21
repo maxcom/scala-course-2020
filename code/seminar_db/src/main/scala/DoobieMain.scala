@@ -1,4 +1,3 @@
-/*
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
 import doobie._
 import doobie.implicits._
@@ -59,4 +58,4 @@ object DoobieMain extends IOApp {
     } yield ()
   }
 
-}*/
+}
