@@ -32,6 +32,7 @@ layout: default
 * [Часть 8. Акторы Akka, часть 1](slides/day8.html). 20 марта. [Версия для печати](slides/day8.html?print-pdf).
   * Видео: [Домашнее задание](https://youtu.be/T20YdPBPwgc).
   * Видео: [Акторы Akka](https://youtu.be/kQ18Vyq2FEs).
+  * Видео: [Акторы и Future. Таймеры. Исключения](https://youtu.be/F5GxB-w3JIQ).
 * Часть 9. Акторы Akka, часть 2. 27 марта.
 * Часть 10. Akka Streams и реактивные потоки. 3 апреля.
 * Часть 11. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
