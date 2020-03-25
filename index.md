@@ -30,6 +30,9 @@ layout: default
   * Видео: [Java NIO и HTTP](https://youtu.be/Cpb8Z0MNI7g).
   * Видео: [REST и Play Framework](https://youtu.be/vxFpEG8NYUg).
 * [Часть 8. Акторы Akka, часть 1](slides/day8.html). 20 марта. [Версия для печати](slides/day8.html?print-pdf).
+  * Видео: [Домашнее задание](https://youtu.be/T20YdPBPwgc).
+  * Видео: [Акторы Akka](https://youtu.be/kQ18Vyq2FEs).
+  * Видео: [Акторы и Future. Таймеры. Исключения](https://youtu.be/F5GxB-w3JIQ).
 * Часть 9. Акторы Akka, часть 2. 27 марта.
 * Часть 10. Akka Streams и реактивные потоки. 3 апреля.
 * Часть 11. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
@@ -59,3 +62,5 @@ layout: default
 7. Play Framework: сессии, аутентификация и обработка ошибок. 11 марта.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-play-auth).
 8. Работа с реляционными БД: scalikejdbc, slick и doobie. 18 марта.
+   * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar_db).
+9. Практика использования акторов Akka. 25 марта.
