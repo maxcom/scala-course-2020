@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Акторы Akka: отказоустойчивости и гарантии. Back pressure. Роутеры.</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/moon.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h3>Часть 9. Акторы Akka: отказоустойчивости и гарантии. Back pressure. Роутеры.</h3>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
+				</section>
+
+				<section>
+					<h2>План</h2>
+                                        <ol>
+					  	<li>Доставка сообщений и сбои.</li>
+					  	<li>CircuitBreaker.</li>
+						<li>Back pressure</li>
+						<li>Статус по практическому заданию
+						<li>Роутеры
+					</ol>
+				</section>
+
+				<section>
+					<h3>Отсутствие гарантий доставки</h3>
+
+					<p>Сообщение теряется при:</p>
+					<ul>
+						<li>Рестарте актора</li>
+						<li>Переполнении ограниченного mailbox</li>
+						<li>Сетевых проблемах</li>
+						<li>...</li>
+					</ul>
+					<p>Только одна попытка доставки — «at most once delivery»</p>
+				</section>
+
+				<section>
+					<p>Потеря сообщений - проблема "модели"?
+				</section>
+
+				<section>
+					<p>Пример: наша кофейня<br> использует идеальную БД
+					<ul>
+						<li>A - Atomicity
+						<li>C - Consistency
+						<li>I - Isolation
+						<li>D - Durability
+					</ul>
+				</section>
+
+				<section>
+					<p>Счет каждого посетителя хранится в табличке
+
+					<p class="fragment">Списания - через UPDATE
+				</section>
+
+				<section>
+					<p>Согласована ли связка ПО + БД?
+				</section>
+
+				<section>
+					<p>Что значит ошибка сети или таймаут?</p>
+					<ul>
+						<li class="fragment">Не получилось начать транзакцию
+						<li class="fragment">Транзакция прошла, но не прошло подтверждение
+						<li class="fragment">Процесс еще не окончен
+						<li class="fragment">+ ошибки и сбои (которых нет в идеальной БД)
+					</ul>
+				</section>
+
+				<section>
+					<p>Таймаут? Таймаут есть всегда
+				</section>
+
+				<section>
+					<p>В асинхронной системе похожие проблемы:
+					<ul>
+						<li class="fragment">Переполненные очереди
+						<li class="fragment">Медленые обработчики
+						<li class="fragment">Плохо обработанные сбои и ошибки
+					</ul>
+				</section>
+
+				<section>
+					<p>Эти проблемы - проблемы как с акторами, так и без.
+				</section>
+
+				<section>
+					<p>Решение проблемы</p>
+					<ul>
+						<li>Всегда помним о таймаутах
+						<li class="fragment">Сбои допустимы
+						<li class="fragment">Механизмы компенсации сбоев обязательны (например журналы у всех участников операции и процедуры сверки)
+					</ul>
+				</section>
+
+				<section>
+					<p>За одно отметим:
+					<ul>
+						<li>Блокировки охватывающие несколько подсистем не возможны
+						<li class="fragment">Глобальной консистентности нет пока идут операции
+						<li class="fragment">Каждая операция консистентна только в конечном счете
+					</ul>
+				</section>
+
+				<section>
+					<h3>Вернемся к Akka</h3>
+					<p>Сбой нельзя детектировать (в общем случае).<p>
+					<p>Сбой и таймаут не отличимы.</p>
+				</section>
+
+				<section>
+					<p>Не нужно решать проблему ненадежной доставки. Вместо этого
+						нужно обеспечить требуемые гарантии при сбоях.</p>
+					<p class="fragment">А еще доставка внутри JVM гарантирована.</p>
+				</section>
+
+				<section>
+					<h3>Что обычно можно гарантировать</h3>
+					<p class="fragment">Положительный ответ только после записи в хранилище или выполнения действия</p>
+					<p class="fragment">Откладывание выполнения с гарантиями - передача "эстафетной палочки"
+				</section>
+
+				<section>
+					<h3>Команды и события</h3>
+					<ul>
+						<li>Команда: сделай что-то. Выполняем её с гарантиями.
+						<li class="fragment">Событие: что-то произошло, реагируй на это. Можем пропустить,
+							если потом можем это компенсировать.
+					</ul>
+				</section>
+
+				<section>
+					<h3>«Happy path &amp; self heal»</h3>
+					<p>Пример в сервисе индексации сообщений</p>
+					<p class="fragment">«Happy path» — новые сообщений индексируем сразу; игнорируем сбои</p>
+					<p class="fragment">«Self heal» – периодически проводим сверку и запускаем в обработку то, что
+					не смогли обработать ранее.</p>
+				</section>
+
+				<section>
+					<h3>Circuit Breaker</h3>
+					<p>«Предохранитель», которые можно вставлять между подсистемами.</p>
+					<p class="fragment">«Разрывает цепь» при частых ошибках.</p>
+					<div class="fragment">
+					<p>«Замыкает цепь» после таймаута и после успешных пробных запросов.</p>
+					<p>Можно использовать вне Akka.</p>
+					</div>
+				</section>
+
+				<section>
+					<p>Пример:
+					<pre><code class="scala">
+  private val breaker = new CircuitBreaker(
+    scheduler = scheduler, // context.system.scheduler
+    maxFailures = 5,
+    callTimeout = 10.seconds,
+    resetTimeout = 1.minute
+  )
+
+  def process(task: Task): Future[Result] = {
+    breaker.withCircuitBreaker {
+      askAnotherService(task)
+    }
+  }
+	</code></pre>
+				</section>
+
+				<section>
+					<h3>Регулировка скорости обработки</h3>
+					<p>Проблема: быстрый producer + медленный consumer = Out Of Memory</p>
+					<p class="fragment">Решение: выбрасываем то, что не успеваем обработать</p>
+					<p class="fragment">Решение: замедляем producer'а (back pressure)</p>
+				</section>
+
+				<section>
+					<h3>Back pressure</h3>
+					<p>Раньше делали сами - считали подтверждения для 
+					оценки размера очереди.</p>
+
+					<p class="fragment">Сейчас используем Akka Streams:<br>
+					поговорим об этом на 8-м занятии.
+				</section>
+
+				<section>
+					<h3>Роутеры</h3>
+				</section>
+
+				<section>
+					<p>Раздаем задачи пулу акторов:
+
+					<ul>
+						<li>RoundRobinRouting
+						<li>SmallestMailboxRouting
+						<li>RandomRouting
+					</ul>
+				</section>
+
+				<section>
+					<p>ConsistentHashingRouting - роутинг по ключу на основе сообщения
+
+					<ul>
+						<li class="fragment">сохраняет порядок для сообщений с одним ключем
+						<li class="fragment">сохраняет обработчика для сообщений с одним ключем
+					</ul>
+				</section>
+
+				<section>
+					<p>ScatterGatherFirstCompletedRouting
+
+					<p>Отправляем всем, используем первый ответ.
+
+					<p class="fragment">Улучшаем время отклика, но выполняем работу N раз
+				</section>
+
+				<section>
+					<p>TailChoppingRouting
+
+					<p>Отправляем первому, через короткий таймаут второму и продолжаем пока не
+					получим первый ответ.
+
+					<p class="fragment">Улучшаем худшие времена отклика.
+				</section>
+
+				<section>
+					<p>Напоминаю:
+					<ul>
+						<li>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</a>
+						<li>Посещения - отмечаем на листочке
+					</ul>
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+                                controls: true,
+                                progress: true,
+                                history: true,
+                                center: true,
+
+                                transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+
+	</body>
+</html>
