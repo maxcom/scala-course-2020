@@ -45,16 +45,21 @@
 				</section>
 
 				<section>
-					<h3>Отсутствие гарантий доставки</h3>
+					<h3>Гарантии доставки сообщений</h3>
+				</section>
 
+				<section>
 					<p>Сообщение теряется при:</p>
 					<ul>
 						<li>Рестарте актора</li>
-						<li>Переполнении ограниченного mailbox</li>
-						<li>Сетевых проблемах</li>
-						<li>...</li>
+						<li class=fragment>Переполнении ограниченного mailbox</li>
+						<li class=fragment>Сетевых проблемах</li>
+						<li class=fragment>...</li>
 					</ul>
-					<p>Только одна попытка доставки — «at most once delivery»</p>
+				</section>
+
+				<section>
+					<p>Только одна попытка доставки:<br>«at most once delivery»</p>
 				</section>
 
 				<section>
@@ -62,7 +67,11 @@
 				</section>
 
 				<section>
-					<p>Пример: наша кофейня<br> использует идеальную БД
+					<p>Пример: кофейня готовит кофе и принимает платежи
+				</section>
+
+				<section>
+					<p>Наша кофейня<br> использует идеальную БД
 					<ul>
 						<li>A - Atomicity
 						<li>C - Consistency
@@ -82,6 +91,14 @@
 				</section>
 
 				<section>
+					<p>Наивное предположение:
+					<ul>
+						<li>Успешная транзакция - деньги списались
+						<li>Неуспешная транзакция - не списались
+					</ul>
+				</section>
+
+				<section>
 					<p>Что значит ошибка сети или таймаут?</p>
 					<ul>
 						<li class="fragment">Не получилось начать транзакцию
@@ -93,6 +110,10 @@
 
 				<section>
 					<p>Таймаут? Таймаут есть всегда
+				</section>
+
+				<section>
+					Итог - при сбое мы не знаем, списали деньги или нет.
 				</section>
 
 				<section>
@@ -151,6 +172,107 @@
 						<li class="fragment">Событие: что-то произошло, реагируй на это. Можем пропустить,
 							если потом можем это компенсировать.
 					</ul>
+				</section>
+
+				<section>
+					<p>Пример: гарантированное выполнение независимых запросов
+				</section>
+
+				<section>
+					<pre><code class="scala">
+object Requester {
+  sealed trait Protocol
+
+  case class Request(id: UUID, query: String, 
+                     replyTo: ActorRef[String]) extends Protocol
+
+  private implicit val timeout: Timeout = 10.seconds
+  private val recheck: FiniteDuration = 1.second
+
+  def behavior(worker: ActorRef[Protocol]): Behavior[Protocol]
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+private case object Tick extends Protocol
+
+Behaviors.withTimers { timers =&gt;
+  timers.startTimerWithFixedDelay(Tick, recheck)
+
+  ...
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+private case class Finished(request: Request, response: String) 
+  extends Protocol
+private case class Failed(id: UUID, ex: Throwable) 
+  extends Protocol
+
+def process(processing: Map[UUID, (Request, Deadline)]) = {
+  def start(ctx: ActorContext[Protocol])(rq: Request) = {
+    ctx.ask(worker, Request(rq.id, rq.query, _)) {
+      case Success(r) =&gt; Finished(rq, r)
+      case Failure(ex) =&gt; Failed(rq.id, ex)
+    }
+
+    rq.id -&gt; (rq, timeout.duration.fromNow)
+  }
+
+  ...
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+Behaviors.receive[Protocol] {
+  case (ctx, rq: Request) =&gt;
+    ctx.ask(worker, Request(rq.id, rq.query, _)) {
+      case Success(r) =&gt; Finished(rq, r)
+      case Failure(ex) =&gt; Failed(rq.id, ex)
+    }
+
+    process(processing + start(ctx)(rq))
+  ...
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+case (_, Finished(rq, response)) =&gt;
+  rq.replyTo ! response
+  process(processing - rq.id)
+case (_, Failed(id, ex)) =&gt;
+  Behaviors.same // logging?
+case (ctx, Tick) =&gt;
+  val restarted = processing.values
+                            .filter(_._2.isOverdue()).map(_._1)
+
+  process(processing ++ restarted.map(start(ctx)))
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Особенности реализации:
+					<ul>
+						<li>Могут быть дубли (идемпотентность или фильтрация дублей)
+						<li>Сообщения перемеживаются
+						<li>Нет общего таймаута на запрос
+					</ul>
+				</section>
+
+				<section>
+					<p>Нужено сохранить порядок?
+
+					<p class=fragment>пронумеруем сообщения
+				</section>
+
+				<section>
+					<p>Akka 2.6.4: <a href="https://doc.akka.io/docs/akka/current/typed/reliable-delivery.html" target=_blank>готовая реализация</a> для нескольких сценариев
 				</section>
 
 				<section>
