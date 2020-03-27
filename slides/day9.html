@@ -39,8 +39,8 @@
 					  	<li>Доставка сообщений и сбои.</li>
 					  	<li>CircuitBreaker.</li>
 						<li>Back pressure</li>
-						<li>Статус по практическому заданию
 						<li>Роутеры
+						<li>Статус по практическому заданию
 					</ol>
 				</section>
 
@@ -332,13 +332,59 @@ case (ctx, Tick) =&gt;
 				</section>
 
 				<section>
-					<p>Раздаем задачи пулу акторов:
+					<p>Раздаем задачи пулу акторов
+				</section>
 
+				<section>
+					<p>Два механизма использования:
+					<ul>
+						<li>Pool - "рабочие" акторы являются дочерними
+						<li>Group - распределяет нагрузку по существующим акторам
+					</ul>
+				</section>
+
+				<section>
+					<p>Простые стратегии:
 					<ul>
 						<li>RoundRobinRouting
-						<li>SmallestMailboxRouting
 						<li>RandomRouting
 					</ul>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+object Calculator {
+  case class Calc(x: Long, replyto: ActorRef[Long])
+
+  private def worker: Behavior[Calc] = Behaviors.receiveMessage {
+    case Calc(x, replyto) =&gt;
+      replyto ! x*x
+      Behaviors.same
+  }
+
+  ...
+}
+					</code></pre>
+				</section>
+				<section>
+					<pre><code class="scala">
+def calculator: Behavior[Calc] = Behaviors.setup[Calc] { ctx =&gt;
+  val pool = Routers.pool(poolSize = 16)(
+    Behaviors.supervise(worker)
+      .onFailure[Exception](SupervisorStrategy.restart))
+
+  val router = ctx.spawn(pool, "worker-pool")
+
+  Behaviors.receiveMessage[Calc] { msg =&gt;
+    router ! msg
+    Behaviors.same
+  }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Проблема - сообщения перемешиваются
 				</section>
 
 				<section>
@@ -348,6 +394,10 @@ case (ctx, Tick) =&gt;
 						<li class="fragment">сохраняет порядок для сообщений с одним ключем
 						<li class="fragment">сохраняет обработчика для сообщений с одним ключем
 					</ul>
+				</section>
+
+				<section>
+					<p>В классической Akka есть еще интересные роутеры
 				</section>
 
 				<section>
@@ -371,8 +421,39 @@ case (ctx, Tick) =&gt;
 					<p>Напоминаю:
 					<ul>
 						<li>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</a>
-						<li>Посещения - отмечаем на листочке
 					</ul>
+				</section>
+
+                                <section>
+                                        <h3>Статус по практическому заданию</h3>
+                                </section>
+
+                                <section>
+                                        <p>План задания
+                                        <ol>
+                                                <li>Классификатор текстов
+                                                <li>Reads для vk.com (только reads! writes не нужно)
+                                                <li>Стемминг и диагностика
+                                                <li>Получаем сообщения API vk.com
+                                                <li>Сервис категоризации<br>-------- мы находимся здесь -------
+                                                <li>Опрос новых записей
+						<li>Хранение состояния на диске
+                                                <li>Realtime обновление
+                                        </ol>
+                                </section>
+
+				<section>
+					<h3>Практическое задание: обновление ленты в акторе</h3>
+					<ul>
+						<li>Загрузку ленты и классификацию выносим в актор
+						<li>Актор хранит ленту в памяти, запросы Get и Refresh
+						<li>Дубликаты выбрасываем по id
+						<li>Ленту автоматически обновляем раз в 3 минуты
+					</ul>
+				</section>
+
+				<section>
+					<p>Как использовать акторы в контроллерах Play?
 				</section>
 
 
