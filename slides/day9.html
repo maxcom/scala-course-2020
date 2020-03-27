@@ -456,6 +456,29 @@ def calculator: Behavior[Calc] = Behaviors.setup[Calc] { ctx =&gt;
 					<p>Как использовать акторы в контроллерах Play?
 				</section>
 
+				<section>
+					<p>Play использует "классический" API
+				</section>
+
+				<section>
+					<pre><code class="scala">
+import akka.actor.ActorSystem
+
+@Singleton // обязательно! иначе акторы будут размножаться
+class Classifier @Inject()(cc: ControllerComponents, 
+                           actorSystem: ActorSystem) 
+			     extends AbstractController(cc) {
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+import akka.actor.typed.scaladsl.adapter._
+
+val typedActor: ActorRef[Protocol] = 
+  actorSystem.spawn(behavior, "name")
+					</code></pre>
+				</section>
 
 			</div>
 
