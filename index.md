@@ -67,3 +67,4 @@ layout: default
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar_db).
 9. Практика использования акторов Akka. 25 марта.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-akka/).
+10. Akka Patterns. 1 апреля.
