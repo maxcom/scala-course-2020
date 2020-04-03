@@ -129,6 +129,73 @@
 				</section>
 
 				<section>
+					<pre><code class="scala">
+def func(x: Int): Future[Int] = ???
+val input: Seq[Int] = Seq.range(1, 10000)
+
+val output: Future[Seq[Int]] = Future.sequence(input.map(func))
+					</code></pre>
+					<p class=fragment>проблема - неограниченный параллелизм, перегрузка ExecutionContext
+				</section>
+
+				<section>
+					Используем Akka Streams
+				</section>
+
+				<section>
+					<pre><code class="scala">
+libraryDependencies += 
+  "com.typesafe.akka" %% "akka-stream" % "2.6.4"
+					</code></pre>
+					<p>версия должна соответствовать версии Akka
+				</section>
+
+				<section>
+					<pre><code class="scala">
+// классическая ActorSystem (можно и typed)
+implicit val actorSystem: ActorSystem = ActorSystem()
+
+def func(x: Int): Future[Int] = ???
+val input: List[Int] = List.range(1, 10000)
+
+val output: Future[Seq[Int]] = 
+  Source(input).mapAsync(10)(func).runWith(Sink.seq)
+                      // 10 потоков
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Materialization - запуск интерпретации.
+					<p>Например runWith, но есть и другие варианты.
+				</section>
+
+				<section>
+					<pre><code class="scala">
+val source: Source[Int, NotUsed] = Source(input)
+// final class Source[+Out, +Mat]
+					</code></pre>
+					<p>Mat - materialized value
+				</section>
+
+				<section>
+					<p>Пример Source с materialized value
+					<pre><code class="scala">
+val source: Source[Int, ActorRef] = 
+  Source.actorRef[Int](1000, OverflowStrategy.dropTail)
+					</code></pre>
+					<p>ActorRef возникает при материализации.
+				</section>
+
+				<section>
+					<pre><code class="scala">
+val flow: Flow[Int, Int, NotUsed] = Flow[Int].mapAsync(10)(func)
+val sink: Sink[Int, Future[Seq[Int]]] = Sink.seq
+
+val output: Future[Seq[Int]] = source.via(flow).runWith(sink)
+					</code></pre>
+				</section>
+
+				<section>
 					<h3>Обзор готовых операторов</h3>
 				</section>
 
