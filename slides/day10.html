@@ -277,6 +277,16 @@ source1.intersperse(source2)
 				</section>
 
 				<section>
+					<p>Sink
+					<ul>
+						<li>ignore: Sink[Any, Future[Done]]
+						<li class=fragment>seq[T]: Sink[T, Future[immutable.Seq[T]]]
+						<li class=fragment>foreach[T](f: T =&gt; Unit): Sink[T, Future[Done]]
+						<li class=fragment>fold[U, T](zero: U)(f: (U, T) =&gt; U): Sink[T, Future[U]]
+					</ul>
+				</section>
+
+				<section>
 					<h3>Обработка ошибок</h3>
 				</section>
 
@@ -315,6 +325,18 @@ RestartSource.onFailuresWithBackoff(
 
 					<pre class="fragment"><code class="scala">val result: Future[QueueOfferResult] = queue.offer(1000)
 // при backpressure нужно ждать вычисления Future</code></pre>
+				</section>
+
+				<section>
+					<p>Source.unfold
+					<pre><code class="scala">
+// числа Фибоначчи
+val fib: Source[Int, NotUsed] = Source.unfold(0 -&gt; 1) {
+  case (a, _) if a &gt; 10000000 =&gt; None
+  case (a, b) =&gt; Some((b -&gt; (a + b)) -&gt; a)
+}
+					</code></pre>
+					<p>есть асинхронный аналог - unfoldAsync
 				</section>
 
 				<section>
