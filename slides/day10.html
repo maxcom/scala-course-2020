@@ -36,7 +36,7 @@
 				<section>
 					<h2>План</h2>
                                         <ol>
-						<li>Back pressure
+						<li>Реактивные потоки
 						<li>Akka Streams: базовые элементы
 						<li>Обзор готовых операторов
 						<li>Обработка ошибок
@@ -46,11 +46,86 @@
 				</section>
 
 				<section>
-					<h3>Back pressure</h3>
+					<h3>Реактивные потоки</h3>
+				</section>
+
+				<section>
+					<p>Преобразования потоков данных.
+					<ul>
+						<li class=fragment>ETL - Extract, Transform, Load
+						<li class=fragment>Поточные запросы и ответы HTTP, прокси
+						<li class=fragment>Выборки, статистики, health check
+					</ul>
+				</section>
+
+				<section>
+					<p>Асинхронная обработка
+					<ul>
+						<li class=fragment>Возможности сложных схем
+						<li class=fragment>Работа со сбоями и отзывчивости
+						<li class=fragment>Эффективность
+					</ul>
+				</section>
+
+				<section>
+					<p>Возникает проблемы:
+					<ul>
+						<li class=fragment>Регулировка скорости producer
+						<li class=fragment>API для интеграции
+					</ul>
+				</section>
+
+				<section>
+					<p>При синхронной обработке скорость<br> регулируется автоматически.
+				</section>
+
+				<section>
+					<p>Back pressure можно делать на акторах, но сложно.
+				</section>
+
+				<section>
+					<p>Reactive streams - API для интеграции, не для
+					конечного пользователя.</p>
+
+					<p><a href="https://www.reactive-streams.org/" target=_blank>https://www.reactive-streams.org/</a>
+				</section>
+
+				<section>
+					<ul>
+						<li>Akka Streams и Akka HTTP (+Play)
+						<li>Netty - http клиенты, драйверы СУБД и очередей
+						<li>Spring 5, ряд сервлетных веб-серверов
+						<li>RxJava
+						<li>Vert.x
+					</ul>
+				</section>
+
+				<section>
+					<p>В идеальном мире нам нужно писать только преобразование.
+
+					<p class=fragment>Позже посмотрим интеграцию с другим
+					асинхронным кодом.
 				</section>
 
 				<section>
 					<h3>Akka Streams: базовые элементы</h3>
+					<ul>
+						<li>Source - источник (producer)
+						<li>Flow - цепочка преобразования
+						<li>Sink - назначение (consumer)
+					</ul>
+				</section>
+
+				<section>
+					<p>Два API для сборки цепочек:
+					<ul>
+						<li>Обычный, похожий на API коллекций
+						<li class=fragment>GraphDSL для сложных схем<br> (не рассматриваем сегодня)
+					</ul>
+				</section>
+
+				<section>
+					<p>Пример - замена Future.sequence
 				</section>
 
 				<section>
