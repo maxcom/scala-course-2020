@@ -36,7 +36,7 @@ layout: default
 * [Часть 9. Акторы Akka, часть 2](slides/day9.html). 27 марта. [Версия для печати](slides/day9.html?print-pdf).
   * Видео: [Домашнее задание](https://youtu.be/akJ2aQaJ7I8).
   * Видео: [Отказоустойчивость и акторы. Back pressure. Роутеры](https://youtu.be/dicAewy8P4s).
-* Часть 10. Akka Streams и реактивные потоки. 3 апреля.
+* [Часть 10. Akka Streams и реактивные потоки](slides/day10.html). 3 апреля. [Версия для печати](slides/day10.html?print-pdf).
 * Часть 11. Event Sourcing и CQRS. Akka Persistence. 10 апреля.
 * Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
 * Подведение итогов. 24 апреля.
