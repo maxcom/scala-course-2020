@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Event Sourcing и CQRS. Akka Persistence.</title>
+		<title>CQRS и Event Sourcing. Akka Persistence.</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/moon.css">
@@ -29,23 +29,33 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h3>Часть 11. Event Sourcing и CQRS.<br> Akka Persistence.</h3>
+					<h3>Часть 11. CQRS и Event Sourcing.<br> Akka Persistence.</h3>
 					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
 					<h2>План</h2>
                                         <ol>
+						<li>Почему Akka Persistence?
 						<li>CQRS
 						<li>Event Sourcing
 						<li>Akka Persistence
 						<li>Снапшоты
 						<li>Akka Persistence Query
+						<li>Почему мы (почти) не используем Akka Persistence
+						<li>Домашнее задание
 					</ol>
 				</section>
 
 				<section>
-					<p>Почему Akka Persistence?</p>
+					<h3>Почему Akka Persistence?</h3>
+				</section>
+
+				<section>
+					<ul>
+						<li>Знакомство с CQRS и Event Sourcing
+						<li class=fragment>Практическое применение
+					</ul>
 				</section>
 
 				<section>
@@ -54,11 +64,21 @@
 				</section>
 
 				<section>
+					<p>"Идеальная жизнь" с реляционной СУБД
+					<ul>
+						<li class="fragment">Данные нормализованы
+						<li class="fragment">Ссылочная целостность и другие constraint'ы
+						<li class="fragment">ACID транзакции<br>
+						(Atomicity, Consistency, Isolation, Durability)
+					</ul>
+				</section>
+
+				<section>
 					<p>Проблема: реалиционные БД универсальны, но они не всегда
 					могут быстро выполнить запрос. 
 					
-					<p class="fragment">И на практике могут выполнить не любой запрос
-					(например не могут полнотекстовый поиск).
+					<p class="fragment">и могут выполнить любой запрос
+					(например полнотекстовый поиск, сложную аналитику).
 				</section>
 
 				<section>
@@ -84,23 +104,26 @@
 					<p>Каждая часть
 					<ul>
 						<li>Имеет свое хранилище
-						<li>Имеет свои программные интерейсы
+						<li class=fragment>Имеет свои программные интерейсы
 					</ul>
 				</section>
 
 				<section>
-					<img src="arch_cqrs_messaging.png" style="max-height: 50vh">
-					<br><small>© A CQRS Journey – Microsoft</small>
-				</section>
-
-				<section>
-					<p>Если Write Side - реляционная СУБД, то нам нужны:
+					<p>Как синхронизировать Read side?
 					<ul>
-						<li>надежная очередь (транзакции, durability)
-						<li>записывать все события в БД и в очередь
+						<li>Синхронно: триггеры и пр.
+						<li class=fragment>Асинхронно: очереди
 					</ul>
 				</section>
 
+				<section>
+					<a href="arch_cqrs_messaging.png" target=_blank><img src="arch_cqrs_messaging.png" style="max-height: 50vh"></a>
+					<br><small>(картинка откроется в новом окне)<br>© A CQRS Journey – Microsoft</small>
+				</section>
+
+				<section>
+					<p>"Надежная" очередь и распределенные транзакции.
+				</section>
 
 				<section>
 					<h3>Event Sourcing</h3>		
@@ -109,9 +132,9 @@
 				<section>
 					<p>"Идеальная жизнь" с реляционной СУБД
 					<ul>
-						<li class="fragment">Данные нормализованы
-						<li class="fragment">Ссылочная целостность и другие constraint'ы
-						<li class="fragment">ACID транзакции<br>
+						<li>Данные нормализованы
+						<li>Ссылочная целостность и другие constraint'ы
+						<li>ACID транзакции<br>
 						(Atomicity, Consistency, Isolation, Durability)
 					</ul>
 				</section>
@@ -155,13 +178,30 @@
 				</section>
 
 				<section>
-					<p>Event Sourcing - храним все события, используем их как основной источник "правды".
-
-					<p class="fragment">Событие - неизменяемый уже произошедший факт.
+					<p>Что первично?
+					<ul>
+						<li>текущее состояние в БД
+						<li>журнал операций
+					</ul>
 				</section>
 
 				<section>
-					<p>Что это дает:
+					<p>Event Sourcing - журнал первичен.
+					
+					<p class="fragment">храним все события, используем их как основной источник "правды".
+				</section>
+
+				<section>
+					<p>События и команды (вспомним 9-ю лекцию)
+					<ul>
+						<li class="fragment">Команда: сделай что-то. Может быть отклонена.
+						<li class="fragment">Событие: что-то произошло, это неизменяемый факт.
+					</ul>
+				</section>
+
+
+				<section>
+					<p>Что дает Event Sourcing:
 					<ul>
 						<li class="fragment">Полную "честную" историю изменений
 						<li class="fragment">Запись append-only: хорошо для многих видов хранилищ
@@ -176,8 +216,24 @@
 						<li>Истории может быть слишком много
 						<li class="fragment">Не понятно как быстро читать и делать запросы
 					</ul>
+				</section>
 
-					<p class="fragment">Решения обоих проблем дальше
+
+				<section>
+					<p>Event Soucing + CQRS
+					<ul>
+						<li class=fragment>Write Side валидирует команды и пишет события
+						<li class=fragment>Read Side - consumer к журналу событий
+					</ul>
+				</section>
+
+				<section>
+					<p>Read Size
+					<ul>
+						<li>Может быть несколько
+						<li class=fragment>Можно перестроить
+						<li class=fragment>Можно поменять схему
+					</ul>
 				</section>
 
 				<section>
@@ -185,8 +241,9 @@
 				</section>
 
 				<section>
-					<p>PersistentActor - актор, который сохраняет события в журнал. При рестарте
-					он восстанавливает состояние из журнала.
+					<p>PersistentActor - актор + журнал событий.
+					<p class=fragment>При рестарте
+					восстанавливает состояние из журнала.
 				</section>
 				
 				<section>
@@ -376,6 +433,15 @@ val events: Source[EventEnvelope, NotUsed] =
 					<p class="fragment">После реализовать логику ожидания нужного номера
 					в view.
 				</section>
+
+				<section>
+					<h3>Почему мы (почти) не используем Akka Persistence</h3>
+				</section>
+
+				<section>
+					<h3>Домашнее задание</h3>
+				</section>	
+
 
 				<section>
 					<p>Напоминаю:
