@@ -38,7 +38,7 @@ layout: default
   * Видео: [Отказоустойчивость и акторы. Back pressure. Роутеры](https://youtu.be/dicAewy8P4s).
 * [Часть 10. Akka Streams и реактивные потоки](slides/day10.html). 3 апреля. [Версия для печати](slides/day10.html?print-pdf).
   * Видео: [Akka Streams](https://youtu.be/bECDVR4siRo).
-* [Часть 11. CQRS и Event Sourcing. Akka Persistence](slides/day11.htlm) 10 апреля. [Версия для печати](slides/day11.html?print-pdf).
+* [Часть 11. CQRS и Event Sourcing. Akka Persistence](slides/day11.html) 10 апреля. [Версия для печати](slides/day11.html?print-pdf).
 * Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
 * Подведение итогов. 24 апреля.
 
