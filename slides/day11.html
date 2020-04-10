@@ -30,7 +30,7 @@
 			<div class="slides">
 				<section>
 					<h3>Часть 11. CQRS и Event Sourcing.<br> Akka Persistence.</h3>
-					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2018/">https://maxcom.github.io/scala-course-2020/</small></a>
+					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
 				<section>
@@ -251,7 +251,7 @@
 					<pre><code class="scala">
 // версии всех akka-* должны быть одинаковые
 libraryDependencies += 
-  "com.typesafe.akka" %% "akka-persistence" % "2.5.12"
+  "com.typesafe.akka" %% "akka-persistence-typed" % "2.6.4"
 					</code></pre>
 				</section>
 
@@ -269,6 +269,62 @@ libraryDependencies +=
 					<p>Команда - запрос актору на выполнение действия.
 
 					<p class="fragment">Команда проходит валидацию, сохраняет событие и выполняет побочный эффект.
+				</section>
+
+				<section>
+					<p>Пример - вспомним CounterActor:
+					<pre><code class="scala">
+object CounterActor {
+  sealed trait CommandProtocol
+  case class Get(replyTo: ActorRef[Int]) extends CommandProtocol
+  case class IncrWhen(amount: Int, pred: Int =&gt; Boolean)
+    extends CommandProtocol
+
+  ...
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+def behavior(counter: Int = 0): Behavior[CommandProtocol] =
+  Behaviors.receiveMessage[CommandProtocol] {
+    case Get(replyTo) =&gt;
+      replyTo ! counter
+      Behaviors.same
+    case IncrWhen(amount, pred) =&gt;
+      if (pred(counter + amount)) {
+        behavior(counter + amount)
+      } else {
+        Behaviors.same
+      }
+  }
+</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+def eventSourcedBehavior: Behavior[CommandProtocol] = 
+  EventSourcedBehavior[CommandProtocol, EventProtocol, Int](
+    persistenceId = PersistenceId.ofUniqueId("myCounter"),
+    emptyState = 0,
+    // (Int, CommandProtocol) =&gt; Effect[EventProtocol, Int]
+    commandHandler = ???,    
+    // (Int, EventProtocol) =&gt; Int
+    eventHandler = ???)
+</code></pre>
+				</section>
+
+				<section>
+					<ul>
+						<li>persistenceId - идентификатор в хранилище
+						<li class=fragment>commandHandler - преобразует комманды в эффекты
+						<li class=fragment>eventHandler - обновляет state по событиям
+					</ul>
+				</section>
+
+				<section>
+					<p>TODO
 				</section>
 
 				<section>
