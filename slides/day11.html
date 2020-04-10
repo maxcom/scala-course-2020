@@ -481,6 +481,15 @@ def behavior: Behavior[CommandProtocol] =
 				</section>
 
 				<section>
+					<pre><code class="scala">
+(0 to 20).foreach { _ =&gt;
+  actorSystem ! IncrWhen(10, _ =&gt; true)
+}
+					</code></pre>
+					<p>запустите и посмотрите debug log
+				</section>
+
+				<section>
 					<h3>Akka Persistence Query</h3>		
 				</section>
 
@@ -498,7 +507,8 @@ def behavior: Behavior[CommandProtocol] =
 					<pre><code class="scala">
 // версии всех akka-* должны быть одинаковые
 libraryDependencies += 
-  "com.typesafe.akka" %% "akka-persistence-query" % "2.5.12"
+  "com.typesafe.akka" %% "akka-persistence-query" % "2.6.4"
+
   					</code></pre>
 				</section>
 
@@ -513,10 +523,10 @@ val queries: LeveldbReadJournal =
 
 // получаем новый поток событий
 val events: Source[EventEnvelope, NotUsed] =
-  queries.currentEventsByPersistenceId("my-counter-actor", 
+  queries.currentEventsByPersistenceId("myCounter", 
                                        fromSequenceNr = 0)
 
-// нам интересно env.event и env.sequenceNr
+events.runForeach(println) // запустите и посмотрите
 					</code></pre>
 				</section>
 
@@ -529,6 +539,10 @@ val events: Source[EventEnvelope, NotUsed] =
 						<li>Считать статистику над потоком событий
 						<li>и др.
 					</ul>
+				</section>
+
+				<section>
+					<p>Если механизм чтения событий из нескольких акторов по "тегу".
 				</section>
 
 				<section>
