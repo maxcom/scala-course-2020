@@ -464,46 +464,20 @@ object ActorDemo extends App {
 				</section>
 
 				<section>
-					<pre><code class="scala">// case class State(value: Int)
-// val SnapshotInterval = 10000
-					
-  override def receiveCommand: Receive = {
-    case Increment(n) ⇒ // команда
-      persist(Incremented(n)) { event ⇒
-        value += event.n
-        sender() ! Ack
-
-        if (lastSequenceNr % SnapshotInterval == 0 
-	    &amp;&amp; lastSequenceNr != 0)
-          saveSnapshot(State(value))  
-      }
-  } </code></pre>
-				</section>
-
-				<section>
-					<p>Восстановление:
+					<p>Включаем снапшоты
 					<pre><code class="scala">
-  override def receiveRecover: Receive = {
-    case Incremented(n) ⇒ 
-      value += n 
-    case SnapshotOffer(metadata, snapshot: State) ⇒ 
-      value = snapshot.value
-  }
+def behavior: Behavior[CommandProtocol] =
+  EventSourcedBehavior[CommandProtocol, EventProtocol, Int](
+      persistenceId = PersistenceId.ofUniqueId("myCounter"),
+      emptyState = 0,
+      commandHandler = commandHandler,
+      eventHandler = eventHandler)
+    .withRetention(
+      RetentionCriteria.snapshotEvery(
+        numberOfEvents = 10, 
+	keepNSnapshots = 2)
+    .withDeleteEventsOnSnapshot)
 					</code></pre>
-					<p>восстановление по-умолчанию стартует с последнего снапшота (можно настроить
-					разные варианты)
-				</section>
-
-				<section>
-					<p>Что если история слишком большая и не нужна?
-
-					<pre><code class="scala">
-    case SaveSnapshotSuccess(metadata) ⇒
-      deleteMessages(metadata.sequenceNr)
-					</code></pre>
-
-					<p>это вариант для "технических" акторов, которым просто нужно восстановление
-					при рестарте
 				</section>
 
 				<section>
