@@ -321,6 +321,7 @@ def behavior: Behavior[CommandProtocol] =
 						<li>none/reply - для запросов
 						<li>persist - запись нового события
 					</ul>
+					<p>См. <a target=_blank href="https://doc.akka.io/docs/akka/current/typed/persistence.html#effects-and-side-effects">еще эффекты в документации</a>
 				</section>
 
 				<section>
@@ -403,6 +404,7 @@ akka.persistence.journal.leveldb.dir =
   "target/example/journal"
 akka.persistence.snapshot-store.local.dir = 
   "target/example/snapshots"
+// snapshot потом пригодится
 					</code></pre>
 				</section>
 
@@ -542,7 +544,7 @@ events.runForeach(println) // запустите и посмотрите
 				</section>
 
 				<section>
-					<p>Если механизм чтения событий из нескольких акторов по "тегу".
+					<p>Есть механизм чтения событий<br> из нескольких акторов по "тегу".
 				</section>
 
 				<section>
