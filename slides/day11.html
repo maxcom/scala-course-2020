@@ -252,16 +252,8 @@
 // версии всех akka-* должны быть одинаковые
 libraryDependencies += 
   "com.typesafe.akka" %% "akka-persistence-typed" % "2.6.4"
-					</code></pre>
-				</section>
-
-				<section>
-					<p>Еще нужен плагин для storage. Обычно используют Cassandra, для отладки проще LevelDB
-
-					<pre><code class="scala">
-// плагин встроен, нужна только сама LevelDB
-libraryDependencies += 
-  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
+libraryDependencies += // или другой backend Slf4j
+  "ch.qos.logback" % "logback-classic" % "1.2.3"
 					</code></pre>
 				</section>
 
@@ -304,7 +296,7 @@ def behavior(counter: Int = 0): Behavior[CommandProtocol] =
 
 				<section>
 					<pre><code class="scala">
-def eventSourcedBehavior: Behavior[CommandProtocol] = 
+def behavior: Behavior[CommandProtocol] = 
   EventSourcedBehavior[CommandProtocol, EventProtocol, Int](
     persistenceId = PersistenceId.ofUniqueId("myCounter"),
     emptyState = 0,
@@ -339,55 +331,128 @@ Effect.persist(EmailSent(data)).thenRun(sendEmail())
 				</section>
 
 				<section>
-					<p>TODO
-				</section>
-
-				<section>
-					<pre><code class="scala">class CounterActor extends PersistentActor {
-  override def persistenceId: String = "my-counter-actor"
-
-  private var value: Int = 0
-
-  override def receiveCommand: Receive = {
-    case Increment(n) ⇒ persist(Incremented(n)) { event ⇒ 
-      // callback
-      value += event.n
-      sender() ! Ack
-    }
-  }
-
-  override def receiveRecover: Receive = ???
-}</code></pre>
-				</section>
-
-				<section>
-					<p>persist асинхронный, но для нас он делает:
-
-					<ul>
-						<li class="fragment">stash, так что события не приходят пока идет запись
-						<li class="fragment">callback запускается в receive актора, имеет доступ к state
-						<li class="fragment">sender() соответствует отправителю команды
-					</ul>
-				</section>
-
-				<section>
-					<p>receiveRecover - восстанавливает актор; не делает побочных эффектов
 					<pre><code class="scala">
-override def receiveCommand: Receive = {
-  case Increment(n) ⇒ // команда
-    persist(Incremented(n)) { event ⇒
-      value += event.n
-      sender() ! Ack
-    }
-}
+object CounterActor {
+  ...
 
-override def receiveRecover: Receive = {
-  case Incremented(n) ⇒ // событие
-    value += n // не отправляем Ack
+  sealed trait EventProtocol
+  case class Incr(amount: Int) extends EventProtocol
+  
+  ...
 }
 					</code></pre>
 				</section>
 
+				<section>
+					<pre><code class="scala">val commandHandler: 
+    (Int, CommandProtocol) =&gt; Effect[EventProtocol, Int] = { 
+  (counter, command) =&gt;
+    command match {
+      case Get(replyTo) =&gt;
+        Effect.reply(replyTo)(counter)
+      case IncrWhen(amount, pred) =&gt;
+        if (pred(counter + amount)) {
+          Effect.persist(Incr(amount))
+        } else {
+          Effect.none
+        }
+    }
+}</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+val eventHandler: (Int, EventProtocol) =&gt; Int = { 
+  (state, event) =&gt;
+    event match {
+      case Incr(amount) =&gt; state + amount
+    }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>При восстановлении работает eventHandler
+					<p>В нем не должно быть побочных эффектов
+				</section>
+
+				<section>
+					<p>Для запуска не хватает настроек Storage и Serialization
+				</section>
+
+				<section>
+					<p>Нужен плагин для storage. Обычно используют Cassandra, для отладки проще LevelDB
+
+					<p>build.sbt</p>
+					<pre><code class="scala">
+// плагин встроен, нужна только сама LevelDB
+libraryDependencies += 
+  "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
+					</code></pre>
+				</section>
+
+				<section>
+					<p>src/main/resources/application.conf
+					<pre><code class="scala">
+akka.persistence.journal.plugin = 
+  "akka.persistence.journal.leveldb"
+akka.persistence.snapshot-store.plugin = 
+  "akka.persistence.snapshot-store.local"
+
+akka.persistence.journal.leveldb.dir = 
+  "target/example/journal"
+akka.persistence.snapshot-store.local.dir = 
+  "target/example/snapshots"
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Настроим сериализацию
+				</section>
+
+				<section>
+					<p>build.sbt</p>
+					<pre><code class="scala">
+libraryDependencies += 
+  "com.typesafe.akka" %% "akka-serialization-jackson" % "2.6.4"
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+trait MySerializable
+
+sealed trait EventProtocol extends MySerializable
+					</code></pre>
+				</section>
+
+				<section>
+					<p>src/main/resources/application.conf
+					<pre><code class="scala">
+akka.actor {
+  serialization-bindings {
+    "MySerializable" = jackson-json
+  }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+object ActorDemo extends App {
+  implicit val actorSystem: ActorSystem[CommandProtocol] = 
+    ActorSystem(CounterActor.behavior, "counter")
+  implicit val timeout: Timeout = 1.minute
+
+  actorSystem ! IncrWhen(10, _ =&gt; true)
+
+  // плохой пример - IncrWhen может еще не успеть
+  println(Await.result(actorSystem ? Get, timeout.duration))
+}
+					</code></pre>
+					<p>при перезапусках значение восстанавливается
+				</section>
+	
 				<section>
 					<h3>Снапшоты</h3>		
 				</section>
