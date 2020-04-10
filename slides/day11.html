@@ -299,7 +299,7 @@ def behavior(counter: Int = 0): Behavior[CommandProtocol] =
         Behaviors.same
       }
   }
-</code></pre>
+					</code></pre>
 				</section>
 
 				<section>
@@ -312,7 +312,7 @@ def eventSourcedBehavior: Behavior[CommandProtocol] =
     commandHandler = ???,    
     // (Int, EventProtocol) =&gt; Int
     eventHandler = ???)
-</code></pre>
+					</code></pre>
 				</section>
 
 				<section>
@@ -321,6 +321,21 @@ def eventSourcedBehavior: Behavior[CommandProtocol] =
 						<li class=fragment>commandHandler - преобразует комманды в эффекты
 						<li class=fragment>eventHandler - обновляет state по событиям
 					</ul>
+				</section>
+
+				<section>
+					<p>Основные эффекты:
+					<ul>
+						<li>none/reply - для запросов
+						<li>persist - запись нового события
+					</ul>
+				</section>
+
+				<section>
+					<p>Внешний побочный эффект:
+					<pre><code class="scala">
+Effect.persist(EmailSent(data)).thenRun(sendEmail())
+					</code></pre>
 				</section>
 
 				<section>
