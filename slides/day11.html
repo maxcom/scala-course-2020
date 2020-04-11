@@ -448,7 +448,6 @@ object ActorDemo extends App {
 
   actorSystem ! IncrWhen(10, _ =&gt; true)
 
-  // плохой пример - IncrWhen может еще не успеть
   println(Await.result(actorSystem ? Get, timeout.duration))
 }
 					</code></pre>
