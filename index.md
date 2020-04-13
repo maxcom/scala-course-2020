@@ -40,6 +40,7 @@ layout: default
   * Видео: [Akka Streams](https://youtu.be/bECDVR4siRo).
 * [Часть 11. CQRS и Event Sourcing. Akka Persistence](slides/day11.html) 10 апреля. [Версия для печати](slides/day11.html?print-pdf).
    * Демо проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/akka-persistence/).
+   * Видео [CQRS, Event Sourcing и Akka Presistence](https://youtu.be/crbOWWT4mb4).
 * Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
 * Подведение итогов. 24 апреля.
 
