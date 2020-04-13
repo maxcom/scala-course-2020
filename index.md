@@ -39,6 +39,7 @@ layout: default
 * [Часть 10. Akka Streams и реактивные потоки](slides/day10.html). 3 апреля. [Версия для печати](slides/day10.html?print-pdf).
   * Видео: [Akka Streams](https://youtu.be/bECDVR4siRo).
 * [Часть 11. CQRS и Event Sourcing. Akka Persistence](slides/day11.html) 10 апреля. [Версия для печати](slides/day11.html?print-pdf).
+   * Демо проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/akka-persistence/).
 * Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
 * Подведение итогов. 24 апреля.
 
