@@ -73,3 +73,4 @@ layout: default
 10. Akka Patterns. 1 апреля.
 11. Akka Streams. 8 апреля.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar_akka_streams/).
+12. Тестирование акторов Akka. 15 апреля.
