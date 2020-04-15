@@ -30,7 +30,7 @@ object CalculateActor {
         }
 
         result.onComplete {
-          case Success(res) => replyTo ! Result(res)
+          case Success(res) => replyTo ! res
           case Failure(e) =>
             ctx.log.info("Command execution failed")
             replyTo ! Result(-1)
