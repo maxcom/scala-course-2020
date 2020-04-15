@@ -1,0 +1,5 @@
+package com
+
+class MainApp {
+
+}
