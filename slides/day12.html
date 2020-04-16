@@ -173,6 +173,20 @@ type Route = RequestContext =&gt; Future[RouteResult]
 				</section>
 
 				<section>
+					<pre><code class="scala">
+type Route = RequestContext =&gt; Future[RouteResult]
+					</code></pre>
+				</section>
+
+				<section>
+					<p>RouteResult - ADT
+					<ul>
+						<li>Complete(response: HttpResponse)
+						<li>Rejected(rejections: Seq[Rejection])
+					</ul>
+				</section>
+
+				<section>
 					<h3>Сериализация/десериализация</h3>
 				</section>
 
