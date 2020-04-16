@@ -116,14 +116,6 @@ val bindingFuture: Future[Http.ServerBinding] =
 				</section>
 
 				<section>
-					<p>Обработчик запросов
-
-					<pre><code class="scala">
-type Route = RequestContext =&gt; Future[RouteResult]
-					</code></pre>
-				</section>
-
-				<section>
 
 					<pre><code class="scala">
 val route: Route =
@@ -135,6 +127,16 @@ val route: Route =
 	  "<h1>Say hello to akka-http</h1>"))
     }
   }
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Обработчик запросов
+
+					<pre><code class="scala">
+type Route = RequestContext =&gt; Future[RouteResult]
+// неявно преобразоввывается в Flow из akka-streams
+// Flow[HttpRequest, HttpResponse, Any]
 					</code></pre>
 				</section>
 
