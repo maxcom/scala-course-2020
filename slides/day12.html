@@ -119,6 +119,13 @@ val bindingFuture: Future[Http.ServerBinding] =
 					<p>Обработчик запросов
 
 					<pre><code class="scala">
+type Route = RequestContext =&gt; Future[RouteResult]
+					</code></pre>
+				</section>
+
+				<section>
+
+					<pre><code class="scala">
 val route: Route =
   path("hello") { // путь "/hello"
     get { // метод "GET"
