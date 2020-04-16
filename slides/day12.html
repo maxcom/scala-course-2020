@@ -42,11 +42,121 @@
 						<li>Поточный JSON
 						<li>Управление кешированием
 						<li>Условные запросы
+						<li>Итоги по домашнему заданию
 					</ol>
 				</section>
 
 				<section>
+					<p>Сегодня последняя лекция курса
+				</section>
+
+				<section>
 					<h3>Akka-http</h3>
+				</section>
+
+				<section>
+					<p>Совмененный асинхронный HTTP сервер и клиент.
+
+					<p>(основное использование - серверная сторона)
+				</section>
+
+				<section>
+					<p>Построен на технологиях Akka.
+
+					<p>Асинхронность - Future и Akka Streams.
+				</section>
+
+				<section>
+					<p>Построен на:
+
+					<ul>
+						<li>akka-io - неблокирующийся ввод-вывод
+						<li>akka-streams - реактивные потоки
+					</ul>
+				</section>
+
+				<section>
+					<p>Начнем с Hello, world!
+				</section>
+
+				<section>
+					<p>build.sbt
+					<pre><code class="scala">
+libraryDependencies +=
+  "com.typesafe.akka" %% "akka-http" % "10.1.11"
+
+// версию Akka выбираем сами (&gt;= 2.5)
+libraryDependencies +=
+  "com.typesafe.akka" %% "akka-stream" % "2.6.4"
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Импортируем scaladsl
+					<pre><code class="scala">
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives._
+					</code></pre>
+					<p>(не путаем с Java API)
+				</section>
+
+				<section>
+					Запуск сервера
+
+					<pre><code class="scala">
+// нужна "классическая" система
+implicit val system: ActorSystem = ActorSystem("my-system")
+
+// обработчик запросов
+val route: Route = ???
+
+val bindingFuture: Future[Http.ServerBinding] = 
+  Http().bindAndHandle(route, "localhost", 8080)
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Обработчик запросов
+
+					<pre><code class="scala">
+val route: Route =
+  path("hello") { // путь "/hello"
+    get { // метод "GET"
+      complete(
+        HttpEntity(
+          ContentTypes.`text/html(UTF-8)`, 
+	  "<h1>Say hello to akka-http</h1>"))
+    }
+  }
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Альтернативный роутинг:
+					<ul>
+						<li>Play Framework
+						<li>Tapir <a target=_blank href="https://github.com/softwaremill/tapir">https://github.com/softwaremill/tapir</a>
+						<li>... еще много реализаций
+					</ul>
+				</section>
+
+				<section>
+					<p>Стандартный роутинг (плюсы):
+					<ul>
+						<li>Максимально гибкий, API любой сложности
+						<li class=fragment>Легко расширяется
+						<li class=fragment>Неограниченная композиция
+					</ul>
+				</section>
+
+				<section>
+					<p>Стандартный роутинг (минусы):
+					<ul>
+						<li>Переусложнен
+						<li class=fragment>IDEA тормозит
+						<li class=fragment>Ручное форматирование кода
+						<li class=fragment>Нет генерации документации
+					</ul>
 				</section>
 
 				<section>
