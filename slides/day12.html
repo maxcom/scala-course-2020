@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы.</title>
+		<title>Akka-Http. Поточный JSON. Условные кеш и условные запросы.</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/moon.css">
@@ -29,7 +29,7 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h3>Часть 12. Akka-Http. Директивы и магниты. Поточный JSON. Условные кеш и условные запросы.</h3>
+					<h3>Часть 12. Akka-Http. Поточный JSON. Условные кеш и условные запросы.</h3>
 					<p><small>Страничка курса: <a href="https://maxcom.github.io/scala-course-2020/">https://maxcom.github.io/scala-course-2020/</small></a>
 				</section>
 
@@ -187,7 +187,102 @@ type Route = RequestContext =&gt; Future[RouteResult]
 				</section>
 
 				<section>
-					<h3>Сериализация/десериализация</h3>
+					<p>Directive - элемент роутинга
+
+					<pre><code class="scala">
+abstract class Directive[L](implicit val ev: Tuple[L]) {
+  // tuple-apply
+  def tapply(f: L =&gt; Route): Route
+
+  ... // функции модификации и композиции
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Directive может:
+					<ul>
+						<li>Модифицировать запрос
+						<li class=fragment>Фильтровать запросы по условию
+						<li class=fragment>Извлекать данные из запроса и контекста
+						<li class=fragment>Модифицировать ответ
+						<li class=fragment>Завершать ответ
+					</ul>
+				</section>
+
+				<section>
+					<ul>
+						<li>Directive0 - без параметров
+						<li>Directive1 - с 1-м параметром
+						<li>Directive2 - с 2-мя
+						<li>...
+					</ul>
+				</section>
+
+				<section>
+					<p>Пример:
+					<pre><code class="scala">
+path("hello") {
+  get { // Directive0 требует метод GET
+    complete("Say hello to akka-http")
+  }
+} ~  // Directive1 требует путь "order/$id"
+path("order" / IntNumber) { id =&gt; // извлеченный id
+  complete(s"Order $id")
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Композиция:
+					<pre><code class="scala">
+path("order" / IntNumber) { id =&gt;
+  (get | put) {
+    extractMethod { m =&gt;
+      complete(s"Received ${m.name} request for order $id")
+    }
+  }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+// собрем custom директиву
+val orderGetOrPutWithMethod =
+  path("order" / IntNumber) &amp; (get | put) &amp; extractMethod
+
+val route =
+  orderGetOrPutWithMethod { (id, m) =&gt;
+    complete(s"Received ${m.name} request for order $id")
+  }
+
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Работа с Future
+					<pre><code class="scala">
+val future: Future[String] = Future.successful("value")
+val route =
+  path("success") {
+    onSuccess(future) { v =&gt; //: Directive[Tuple1[String]]
+      complete(s"Future was completed with $v.")
+    }
+  }
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Примеры директив будут во второй половине
+				</section>
+
+				<section>
+					<h3>Сериализация</h3>
+				</section>
+
+				<section>
+					<h3>Десериализация</h3>
 				</section>
 
 				<section>
