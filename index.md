@@ -41,7 +41,7 @@ layout: default
 * [Часть 11. CQRS и Event Sourcing. Akka Persistence](slides/day11.html) 10 апреля. [Версия для печати](slides/day11.html?print-pdf).
    * Демо проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/akka-persistence/).
    * Видео [CQRS, Event Sourcing и Akka Presistence](https://youtu.be/MNBm0rkyBzE).
-* Часть 12. Akka-Http. Поточный JSON. Условные кеш и условные запросы. 17 апреля.
+* [Часть 12. Akka-Http. Поточный JSON. Условные кеш и условные запросы](slides/day12.html). 17 апреля.  [Версия для печати](slides/day12.html?print-pdf).
 * Подведение итогов. 24 апреля.
 
 Внимание! Для распечатки слайдов или сохранения в PDF используейте ссылки "версии для печати" и браузер Chrome/Chromium.
