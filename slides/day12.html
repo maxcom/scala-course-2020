@@ -266,7 +266,7 @@ val route =
 val future: Future[String] = Future.successful("value")
 val route =
   path("success") {
-    onSuccess(future) { v =&gt; //: Directive[Tuple1[String]]
+    onSuccess(future) { v =&gt; // Directive[Tuple1[String]]
       complete(s"Future was completed with $v.")
     }
   }
