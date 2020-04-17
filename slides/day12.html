@@ -370,6 +370,81 @@ get {
 				</section>
 
 				<section>
+					<p>Варианты:
+					<ul>
+						<li>Массив объектов (*)
+						<li>Объекты разделенные запятой или пробелом (*)
+						<li>Объекты без перевода строки разделенные переводом
+					</ul>
+					<p>(*) готовая реализация
+				</section>
+
+				<section>
+					<p>Чтение: обычно в клиенте или из файла/БД. Но бывает и для тела запроса:
+					<pre><code class="scala">
+implicit val jsonStreamingSupport: JsonEntityStreamingSupport =
+  EntityStreamingSupport.json()
+
+entity(as[Source[Data, _]]) { data =&gt;
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Используем вне routing dsl:
+					<pre><code class="scala">
+Flow[ByteString]
+  .via(jsonStreamingSupport.framingDecoder)
+  .mapAsync(1)(bytes =&gt; Unmarshal(bytes).to[Data])
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Разбиваем по переводу строки
+					<pre><code class="scala">
+// вместо jsonStreamingSupport.framingDecoder
+Framing.delimiter(
+  ByteString("\r\n"), 
+  maximumFrameLength = 16384, 
+  allowTruncation = false)
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Запись JSON
+					<pre><code class="scala">
+get {
+  val source: Source[Data, NotUsed] = 
+    Source(Seq(Data("value")))
+  complete(source)
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Проблема - обработка ошибок
+					<ul>
+						<li>Future - результат или error page
+						<li>Source - оборванный stream
+					</ul>
+				</section>
+
+				<section>
+					<p>Ошибки вместо пустых ответов:
+					<pre><code class="scala">
+def dataOrFail[T]
+    (source: Source[T, NotUsed]): Future[Source[T, NotUsed]] = {
+  source
+    .prefixAndTail(1)
+    .runWith(Sink.head) 
+    .map { case (first, rest) =&gt;
+      Source(first).concat(rest)
+    }
+}
+					</code></pre>
+					<p>(future падает при ошибке получения 1-го элемента)
+				</section>
+
+				<section>
 					<h3>Управление кешированием</h3>
 				</section>
 
