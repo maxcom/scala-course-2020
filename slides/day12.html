@@ -282,7 +282,87 @@ val route =
 				</section>
 
 				<section>
+					<pre><code class="scala">
+def complete(m: =&gt; ToResponseMarshallable): StandardRoute
+// implicit преобразование
+					</code></pre>
+					<p>typeclass напрямую не используется
+				</section>
+
+				<section>
+					<pre><code class="scala">
+type ToResponseMarshaller[T] = Marshaller[T, HttpResponse]
+
+sealed abstract class Marshaller[-A, +B] {
+  def apply(value: A)(implicit ec: ExecutionContext): 
+    Future[List[Marshalling[B]]]
+  ...
+}
+					</code></pre>
+					<p>возможно несколько вариантов маршаллинга<br>
+					(content negitiation)
+				</section>
+
+				<section>
+					<p>JSON: <a target=_blank href="https://github.com/hseeberger/akka-http-json">akka-http-json</a>
+					<ul>
+						<li>Argonaut
+						<li>avro4s
+						<li>AVSystem GenCodec
+						<li>circe
+						<li>Jackson
+						<li>Json4s
+						<li>jsoniter-scala
+						<li>Play JSON
+						<li>uPickle
+					</ul>
+				</section>
+
+				<section>
+					<p>build.sbt
+					<pre><code class="scala">
+libraryDependencies +=
+  "de.heikoseeberger" %% "akka-http-play-json" % "1.31.0"
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+
+...
+
+  complete(Json.obj("value" -&gt; "Hello, world!"))
+
+...
+					</code></pre>
+				</section>
+
+				<section>
 					<h3>Десериализация</h3>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+case class Data(value: String)
+object Data {
+  implicit val format: OFormat[Data] = Json.format[Data]
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+get {
+  complete(Data("Hello, world"))
+} ~ post {
+  // entity - Directive1
+  // as[Data] ищет implicit FromRequestUnmarshaller[T]
+  entity(as[Data]) { data =&gt;
+    complete(s"Got ${data.value}")
+  }
+}
+					</code></pre>
 				</section>
 
 				<section>
