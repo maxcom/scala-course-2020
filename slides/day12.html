@@ -449,7 +449,109 @@ def dataOrFail[T]
 				</section>
 
 				<section>
+					<p>Кеширование - полезная "фича" HTTP.
+
+					<p class=fragment>Кешируются GET запросы без тела.
+
+					<p class=fragment>Поддерживается браузерами и многими http-клиентами.
+				</section>
+
+				<section>
+					<p>Три варианта заголовков:
+					<ul>
+						<li>Явно выключено
+						<li>Не указано
+						<li>Явно включено
+					</ul>
+				</section>
+
+				<section>
+					<p>Не указано - на усмотрение клиента. Обычно:
+					<ul>
+						<li>Клиенты не кешируют
+						<li>AJAX не кешируется (кроме IE)
+						<li>HTML кешируется
+					</ul>
+					<p class=fragment>если ожидаем странные клиенты то лучше всегда явно указывать
+				</section>
+
+				<section>
+					<p>Выключение кеширования:
+					<pre><code class="http">
+Cache-control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Expires: 0
+					</code></pre>
+
+					<pre><code class="scala">
+respondWithHeader(
+   `Cache-Control`(`no-store`, `no-cache`, `must-revalidate`)) {
+  complete("Hello, world")
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Кеширование с таймаутом
+					<pre><code class="http">
+Cache-control: max-age=${seconds}
+					</code></pre>
+					<p>"Вечное" кеширование
+					<pre><code class="http">
+Cache-control: max-age=365000000, immutable
+					</code></pre>
+				</section>
+
+				<section>
+					<p>Таймаут для меняющихся ответов должен быть очень коротким.
+				</section>
+
+				<section>
+					<p>Кодируем "версию" в URL - иногда весьма эффективно.
+
+					<p>Для REST можно комбинировать с redirect.
+				</section>
+
+				<section>
 					<h3>Условные запросы</h3>
+					<p>Кеширование с проверкой актуальности кеша.
+				</section>
+
+				<section>
+					<p>Когда это эффективно?
+					<ul>
+						<li>Большие ответы (например картинки)
+						<li>"Тяжелые" запросы с возможностью быстрой проверки
+					</ul>
+				</section>
+
+				<section>
+					<p>Пример быстрых проверок:
+					<ul>
+						<li>Сохраненная дата последней модификации
+						<li>Сохраненый номер версии
+					</ul>
+				</section>
+
+				<section>
+					<p>Помечаем ответы заголовком, на выбор:
+					<ul>
+						<li>Last-modified - дата
+						<li>Etag - произвольная строка<br>
+						    (номер версии, random, хеш-сумма)
+					</ul>
+				</section>
+
+				<section>
+					<pre><code class="scala">
+// нестандартный DateTime из Akka Http
+val lastModified: DateTime = ???
+conditional(lastModified) { // 304 Not Modified если не изменился
+  respondWithHeader(`Cache-Control`(`must-revalidate`)) {
+    complete("Hello, world")
+  }
+}
+					</code></pre>
 				</section>
 
 				<section>
