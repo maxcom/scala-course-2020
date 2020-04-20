@@ -42,6 +42,7 @@ layout: default
    * Демо проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/akka-persistence/).
    * Видео [CQRS, Event Sourcing и Akka Presistence](https://youtu.be/MNBm0rkyBzE).
 * [Часть 12. Akka-Http. Поточный JSON. Условные кеш и условные запросы](slides/day12.html). 17 апреля.  [Версия для печати](slides/day12.html?print-pdf).
+  * Видео [Akka HTTP. Поточный JSON. Кеш и условные запросы](https://youtu.be/ZmZypetWDaU).
 * Подведение итогов. 24 апреля.
 
 Внимание! Для распечатки слайдов или сохранения в PDF используейте ссылки "версии для печати" и браузер Chrome/Chromium.
