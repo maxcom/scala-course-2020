@@ -76,4 +76,5 @@ layout: default
 12. Тестирование акторов Akka. 15 апреля.
    * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-akka-testing/).
 13. Akka Http. 22 апреля.
+   * Стартовый проект [на github](https://github.com/maxcom/scala-course-2020/tree/gh-pages/code/seminar-akka-http/).
 14. Подведение итогов. 29 апреля.
